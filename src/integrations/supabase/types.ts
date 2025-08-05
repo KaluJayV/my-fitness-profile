@@ -303,6 +303,16 @@ export type Database = {
         Args: { "": string } | { "": unknown }
         Returns: unknown
       }
+      get_user_history: {
+        Args: { p_user: string }
+        Returns: {
+          exercise_name: string
+          total_sets: number
+          avg_weight: number
+          avg_reps: number
+          last_performed: string
+        }[]
+      }
       halfvec_avg: {
         Args: { "": number[] }
         Returns: unknown
