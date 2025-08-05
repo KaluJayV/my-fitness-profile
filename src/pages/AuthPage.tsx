@@ -152,7 +152,7 @@ const AuthPage = () => {
 
       // First try to sign in
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: "jeff@example.com",
+        email: "jeff@test.com",
         password: "password",
       });
 
@@ -167,7 +167,7 @@ const AuthPage = () => {
           const redirectUrl = `${window.location.origin}/`;
           
           const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: "jeff@example.com",
+            email: "jeff@test.com",
             password: "password",
             options: {
               emailRedirectTo: redirectUrl,
@@ -186,7 +186,7 @@ const AuthPage = () => {
               .upsert({
                 id: signUpData.user.id,
                 username: 'jeff',
-                email: 'jeff@example.com',
+                email: 'jeff@test.com',
                 goal: 'hypertrophy',
                 experience: 'intermediate',
                 equipment: ['db', 'barbell', 'bench'],
@@ -364,7 +364,7 @@ const AuthPage = () => {
                 )}
               </Button>
               <p className="text-xs text-muted-foreground text-center mt-2">
-                Creates test account if needed: jeff@example.com / password
+                Creates test account if needed: jeff@test.com / password
               </p>
             </div>
           </CardContent>
