@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { WeekCalendar } from "@/components/WeekCalendar";
 import { WorkoutList } from "@/components/WorkoutList";
+import { NavigationHeader } from "@/components/NavigationHeader";
 
 interface Program {
   id: string;
@@ -183,13 +184,16 @@ const ScheduleBuilder = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse">
+      <div className="min-h-screen bg-background">
+        <NavigationHeader title="Schedule Builder" />
+        <div className="p-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="animate-pulse">
             <div className="h-8 bg-muted rounded w-1/3 mb-6"></div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 h-96 bg-muted rounded"></div>
               <div className="h-96 bg-muted rounded"></div>
+            </div>
             </div>
           </div>
         </div>
@@ -198,26 +202,28 @@ const ScheduleBuilder = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-6 w-6 text-primary" />
-            <h1 className="text-3xl font-bold">Schedule Builder</h1>
+    <div className="min-h-screen bg-background">
+      <NavigationHeader title="Schedule Builder" />
+      <div className="p-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-6 w-6 text-primary" />
+              <h2 className="text-2xl font-bold">Build Your Schedule</h2>
+            </div>
+            <Button 
+              onClick={generateWeek} 
+              disabled={generating}
+              className="flex items-center gap-2"
+            >
+              {generating ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
+              Generate Week
+            </Button>
           </div>
-          <Button 
-            onClick={generateWeek} 
-            disabled={generating}
-            className="flex items-center gap-2"
-          >
-            {generating ? (
-              <RefreshCw className="h-4 w-4 animate-spin" />
-            ) : (
-              <Plus className="h-4 w-4" />
-            )}
-            Generate Week
-          </Button>
-        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Calendar Week View */}
@@ -267,6 +273,7 @@ const ScheduleBuilder = () => {
                 />
               </CardContent>
             </Card>
+          </div>
           </div>
         </div>
       </div>

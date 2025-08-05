@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select"
 import { MultiSelect } from "@/components/ui/multi-select"
 import { Loader2, User } from "lucide-react"
+import { NavigationHeader } from "@/components/NavigationHeader"
 
 const profileSchema = z.object({
   username: z.string().min(2, "Username must be at least 2 characters"),
@@ -163,8 +164,10 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-background">
+      <NavigationHeader title="Profile Settings" />
+      <div className="p-4">
+        <div className="max-w-2xl mx-auto">
         <Card>
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
@@ -294,6 +297,7 @@ export default function Profile() {
             </Form>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   )

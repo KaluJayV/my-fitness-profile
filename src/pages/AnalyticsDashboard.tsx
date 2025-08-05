@@ -6,6 +6,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
+import { NavigationHeader } from "@/components/NavigationHeader";
 
 interface ProgressData {
   week: string;
@@ -174,9 +175,11 @@ const AnalyticsDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="animate-pulse">
+      <div className="min-h-screen bg-background">
+        <NavigationHeader title="Analytics Dashboard" />
+        <div className="p-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="animate-pulse">
             <div className="h-8 bg-muted rounded w-1/3 mb-6"></div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -187,6 +190,7 @@ const AnalyticsDashboard = () => {
               <div className="h-96 bg-muted rounded"></div>
               <div className="h-96 bg-muted rounded"></div>
             </div>
+            </div>
           </div>
         </div>
       </div>
@@ -194,14 +198,16 @@ const AnalyticsDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Analytics Dashboard</h1>
-            <p className="text-muted-foreground">Track your fitness progress and achievements</p>
-          </div>
-          <Button 
+    <div className="min-h-screen bg-background">
+      <NavigationHeader title="Analytics Dashboard" />
+      <div className="p-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Your Progress</h2>
+              <p className="text-muted-foreground">Track your fitness progress and achievements</p>
+            </div>
+            <Button 
             onClick={() => {
               fetchData();
               fetchAIAnalysis();
@@ -211,8 +217,8 @@ const AnalyticsDashboard = () => {
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
-          </Button>
-        </div>
+            </Button>
+          </div>
 
         {/* Stats Cards */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
@@ -364,6 +370,7 @@ const AnalyticsDashboard = () => {
             )}
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );
