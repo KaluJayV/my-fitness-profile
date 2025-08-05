@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Dumbbell, Library } from "lucide-react";
+import { User, Dumbbell, Library, CalendarDays } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -12,7 +12,7 @@ const Index = () => {
           <p className="text-xl text-muted-foreground">Your AI-powered fitness companion</p>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="text-center">
               <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
@@ -46,6 +46,25 @@ const Index = () => {
               <Button asChild className="w-full text-base py-6" variant="secondary">
                 <Link to="/exercises">
                   Browse Exercises
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <CalendarDays className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle>Schedule Builder</CardTitle>
+              <CardDescription>
+                Plan your workout week with drag-and-drop scheduling and AI generation
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full text-base py-6" variant="secondary">
+                <Link to="/schedule">
+                  Build Schedule
                 </Link>
               </Button>
             </CardContent>
