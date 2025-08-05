@@ -8,6 +8,8 @@ import Index from "./pages/Index";
 import Profile from "./pages/Profile";
 import ExerciseLibrary from "./pages/ExerciseLibrary";
 import ScheduleBuilder from "./pages/ScheduleBuilder";
+import SessionTracker from "./pages/SessionTracker";
+import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +25,8 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/exercises" element={<ExerciseLibrary />} />
           <Route path="/schedule" element={<ScheduleBuilder />} />
+          <Route path="/workout/:id" element={<SessionTracker />} />
+          <Route path="/analytics" element={<AnalyticsDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

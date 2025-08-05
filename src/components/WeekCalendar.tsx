@@ -1,8 +1,9 @@
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { X, Play } from "lucide-react";
 
 interface Program {
   id: string;
@@ -25,6 +26,7 @@ interface WeekCalendarProps {
 }
 
 export const WeekCalendar = ({ currentWeek, workouts, onWorkoutSchedule }: WeekCalendarProps) => {
+  const navigate = useNavigate();
   const weekDays = useMemo(() => {
     const start = new Date(currentWeek);
     const day = start.getDay();
@@ -95,42 +97,56 @@ export const WeekCalendar = ({ currentWeek, workouts, onWorkoutSchedule }: WeekC
             >
               <div className="space-y-1">
                 {dayWorkouts.map((workout) => (
-                  <Card 
-                    key={workout.id} 
-                    className="p-2 relative group cursor-move"
-                    style={{ borderLeft: `3px solid ${workout.program?.color}` }}
-                    draggable
-                    onDragStart={(e) => {
-                      e.dataTransfer.setData('workoutId', workout.id);
-                    }}
-                  >
-                    <CardContent className="p-0">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <Badge 
-                            variant="secondary" 
-                            className="text-xs mb-1 block w-fit"
-                            style={{ backgroundColor: `${workout.program?.color}20` }}
-                          >
-                            {workout.program?.name}
-                          </Badge>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {formatWorkoutTitle(workout)}
-                          </p>
+                    <Card 
+                      key={workout.id} 
+                      className="p-2 relative group cursor-pointer"
+                      style={{ borderLeft: `3px solid ${workout.program?.color}` }}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('workoutId', workout.id);
+                      }}
+                      onClick={() => navigate(`/workout/${workout.id}`)}
+                    >
+                      <CardContent className="p-0">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <Badge 
+                              variant="secondary" 
+                              className="text-xs mb-1 block w-fit"
+                              style={{ backgroundColor: `${workout.program?.color}20` }}
+                            >
+                              {workout.program?.name}
+                            </Badge>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {formatWorkoutTitle(workout)}
+                            </p>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/workout/${workout.id}`);
+                              }}
+                            >
+                              <Play className="h-3 w-3 text-primary" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeWorkout(workout.id);
+                              }}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeWorkout(workout.id);
-                          }}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </CardContent>
+                      </CardContent>
                   </Card>
                 ))}
               </div>
