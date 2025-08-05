@@ -1,15 +1,29 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Dumbbell, Library, CalendarDays } from "lucide-react";
+import { User, Dumbbell, Library, CalendarDays, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
+  const { user, signOut } = useAuth();
+
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4">G(ai)ns</h1>
-          <p className="text-xl text-muted-foreground">Your AI-powered fitness companion</p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="text-center flex-1">
+            <h1 className="text-4xl font-bold mb-4">G(ai)ns</h1>
+            <p className="text-xl text-muted-foreground">Your AI-powered fitness companion</p>
+            {user && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Welcome back, {user.email}!
+              </p>
+            )}
+          </div>
+          <Button onClick={signOut} variant="outline" size="sm">
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
         </div>
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
