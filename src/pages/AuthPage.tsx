@@ -157,6 +157,12 @@ const AuthPage = () => {
       });
 
       if (signInError) {
+        // Handle email not confirmed error
+        if (signInError.message.includes('Email not confirmed')) {
+          setError("Jeff's email needs to be confirmed. Please go to Supabase Dashboard > Authentication > Users, find jeff.test@gmail.com, and click 'Confirm User' or disable email confirmation in Authentication > Settings.");
+          return;
+        }
+        
         // If sign in fails, try to create the user first
         if (signInError.message.includes('Invalid login credentials')) {
           toast({
@@ -180,6 +186,12 @@ const AuthPage = () => {
           if (signUpError) throw signUpError;
 
           if (signUpData.user) {
+            // Check if user was created but needs confirmation
+            if (!signUpData.session) {
+              setError("Test user created but needs email confirmation. Please go to Supabase Dashboard > Authentication > Users, find jeff.test@gmail.com, and click 'Confirm User' or disable email confirmation in Authentication > Settings.");
+              return;
+            }
+
             // Update the existing profile with the correct user ID
             const { error: profileError } = await supabase
               .from('users')
