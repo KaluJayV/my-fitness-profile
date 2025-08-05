@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Dumbbell } from "lucide-react";
+import { User, Dumbbell, Library } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Index = () => {
@@ -12,7 +12,7 @@ const Index = () => {
           <p className="text-xl text-muted-foreground">Your AI-powered fitness companion</p>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-3">
           <Card>
             <CardHeader className="text-center">
               <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
@@ -27,6 +27,25 @@ const Index = () => {
               <Button asChild className="w-full text-base py-6">
                 <Link to="/profile">
                   Go to Profile
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <Library className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle>Exercise Library</CardTitle>
+              <CardDescription>
+                Browse and rate exercises with detailed demonstrations and muscle targeting
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full text-base py-6" variant="secondary">
+                <Link to="/exercises">
+                  Browse Exercises
                 </Link>
               </Button>
             </CardContent>
