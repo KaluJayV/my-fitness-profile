@@ -127,7 +127,7 @@ export const WorkoutScheduler: React.FC<WorkoutSchedulerProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onCancel}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarIcon className="h-5 w-5" />
@@ -138,7 +138,8 @@ export const WorkoutScheduler: React.FC<WorkoutSchedulerProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+        <ScrollArea className="flex-1 mt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pr-4">
           {/* Left Side - Workout Plan Overview */}
           <div className="space-y-4">
             <Card>
@@ -266,8 +267,9 @@ export const WorkoutScheduler: React.FC<WorkoutSchedulerProps> = ({
                 </CardContent>
               </Card>
             )}
+            </div>
           </div>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
