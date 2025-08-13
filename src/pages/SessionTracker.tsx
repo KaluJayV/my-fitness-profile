@@ -8,6 +8,7 @@ import { Plus, Check, ArrowLeft, Timer } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ExerciseSetTable } from "@/components/ExerciseSetTable";
+import { WorkoutVoiceInput } from "@/components/WorkoutVoiceInput";
 
 interface Set {
   id: string;
@@ -198,6 +199,38 @@ const SessionTracker = () => {
     ));
   };
 
+  const handleVoiceData = (data: { 
+    exerciseId: number; 
+    setIndex: number; 
+    weight: number | null; 
+    reps: number | null; 
+    rir: number | null;
+  }) => {
+    if (data.exerciseId && data.setIndex !== null) {
+      // Find exercise by id
+      const exerciseIndex = exercises.findIndex(ex => 
+        ex.id === data.exerciseId
+      );
+      
+      if (exerciseIndex !== -1 && exercises[exerciseIndex].sets[data.setIndex]) {
+        if (data.weight !== null) {
+          updateSet(exerciseIndex, data.setIndex, 'weight', data.weight);
+        }
+        if (data.reps !== null) {
+          updateSet(exerciseIndex, data.setIndex, 'reps', data.reps);
+        }
+        if (data.rir !== null) {
+          updateSet(exerciseIndex, data.setIndex, 'rir', data.rir);
+        }
+      }
+    }
+  };
+
+  const exerciseList = exercises.map(ex => ({
+    id: ex.id,
+    name: ex.name
+  }));
+
   const finishSession = async () => {
     setSaving(true);
     try {
@@ -310,9 +343,15 @@ const SessionTracker = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Timer className="h-4 w-4" />
-              {getSessionDuration()}
+            <div className="flex items-center gap-3">
+              <WorkoutVoiceInput 
+                exercises={exerciseList}
+                onDataReceived={handleVoiceData}
+              />
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Timer className="h-4 w-4" />
+                {getSessionDuration()}
+              </div>
             </div>
           </div>
         </div>

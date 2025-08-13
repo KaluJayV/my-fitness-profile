@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trash2 } from "lucide-react";
-import { VoiceSetInput } from "./VoiceSetInput";
+
 
 interface Set {
   id: string;
@@ -39,7 +39,6 @@ export const ExerciseSetTable = ({ sets, onUpdateSet, onRemoveSet }: ExerciseSet
           <TableHead className="text-center">Weight</TableHead>
           <TableHead className="text-center">Reps</TableHead>
           <TableHead className="text-center">RIR</TableHead>
-          <TableHead className="w-20 text-center">Voice</TableHead>
           <TableHead className="w-12"></TableHead>
         </TableRow>
       </TableHeader>
@@ -81,21 +80,6 @@ export const ExerciseSetTable = ({ sets, onUpdateSet, onRemoveSet }: ExerciseSet
                 min="0"
                 max="10"
                 step="1"
-              />
-            </TableCell>
-            <TableCell className="text-center">
-              <VoiceSetInput
-                onDataReceived={(data) => {
-                  if (data.weight !== null) {
-                    onUpdateSet(index, 'weight', data.weight);
-                  }
-                  if (data.reps !== null) {
-                    onUpdateSet(index, 'reps', data.reps);
-                  }
-                  if (data.rir !== null) {
-                    onUpdateSet(index, 'rir', data.rir);
-                  }
-                }}
               />
             </TableCell>
             <TableCell>

@@ -4,11 +4,23 @@ import { Mic, MicOff, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-interface VoiceSetInputProps {
-  onDataReceived: (data: { weight: number | null; reps: number | null; rir: number | null }) => void;
+interface Exercise {
+  id: number;
+  name: string;
 }
 
-export const VoiceSetInput = ({ onDataReceived }: VoiceSetInputProps) => {
+interface WorkoutVoiceInputProps {
+  exercises: Exercise[];
+  onDataReceived: (data: { 
+    exerciseId: number; 
+    setIndex: number; 
+    weight: number | null; 
+    reps: number | null; 
+    rir: number | null;
+  }) => void;
+}
+
+export const WorkoutVoiceInput = ({ exercises, onDataReceived }: WorkoutVoiceInputProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -46,7 +58,7 @@ export const VoiceSetInput = ({ onDataReceived }: VoiceSetInputProps) => {
       
       toast({
         title: "Recording...",
-        description: "Speak your set details (e.g., '225 pounds for 8 reps with 2 in reserve')",
+        description: "Say which exercise, set number, and your results (e.g., 'Bench press set 2, 225 pounds for 8 reps with 2 in reserve')",
       });
     } catch (error) {
       console.error('Error starting recording:', error);
@@ -77,10 +89,13 @@ export const VoiceSetInput = ({ onDataReceived }: VoiceSetInputProps) => {
         const base64Audio = (reader.result as string).split(',')[1];
         
         try {
-          console.log('Sending audio to voice-to-workout-data function...');
+          console.log('Sending audio to workout-voice-parser function...');
           
-          const { data, error } = await supabase.functions.invoke('voice-to-workout-data', {
-            body: { audio: base64Audio }
+          const { data, error } = await supabase.functions.invoke('workout-voice-parser', {
+            body: { 
+              audio: base64Audio,
+              exercises: exercises
+            }
           });
 
           if (error) throw error;
@@ -131,18 +146,26 @@ export const VoiceSetInput = ({ onDataReceived }: VoiceSetInputProps) => {
   return (
     <Button
       variant="outline"
-      size="sm"
       onClick={handleClick}
       disabled={isProcessing}
-      className="h-8 w-8 p-0"
-      title={isRecording ? "Stop recording" : "Record set details"}
+      className="gap-2"
+      title={isRecording ? "Stop recording" : "Record workout data"}
     >
       {isProcessing ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Processing...
+        </>
       ) : isRecording ? (
-        <MicOff className="h-4 w-4 text-destructive" />
+        <>
+          <MicOff className="h-4 w-4 text-destructive" />
+          Stop Recording
+        </>
       ) : (
-        <Mic className="h-4 w-4" />
+        <>
+          <Mic className="h-4 w-4" />
+          Record Workout
+        </>
       )}
     </Button>
   );
