@@ -303,6 +303,16 @@ export type Database = {
         Args: { "": string } | { "": unknown }
         Returns: unknown
       }
+      get_exercise_1rm_data: {
+        Args: { p_user_id: string; p_exercise_id: number }
+        Returns: {
+          weight: number
+          reps: number
+          rir: number
+          performed_at: string
+          estimated_1rm: number
+        }[]
+      }
       get_exercise_history: {
         Args: { p_user_id: string; p_exercise_id: number; p_limit?: number }
         Returns: {
