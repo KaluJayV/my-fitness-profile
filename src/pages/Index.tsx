@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { User, Dumbbell, Library, CalendarDays, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { TodayWorkouts } from "@/components/TodayWorkouts";
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -25,8 +26,13 @@ const Index = () => {
             Sign Out
           </Button>
         </div>
+
+        {/* Today's Workouts Section */}
+        <div className="mb-8">
+          <TodayWorkouts />
+        </div>
         
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card>
             <CardHeader className="text-center">
               <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
@@ -70,15 +76,15 @@ const Index = () => {
               <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
                 <CalendarDays className="h-8 w-8 text-primary" />
               </div>
-              <CardTitle>Schedule Builder</CardTitle>
+              <CardTitle>Workout Calendar</CardTitle>
               <CardDescription>
-                Plan your workout week with drag-and-drop scheduling and AI generation
+                View your scheduled workouts in a calendar format and track your fitness journey
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button asChild className="w-full text-base py-6" variant="secondary">
-                <Link to="/schedule">
-                  Build Schedule
+                <Link to="/calendar">
+                  View Calendar
                 </Link>
               </Button>
             </CardContent>

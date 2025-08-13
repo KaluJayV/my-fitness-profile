@@ -9,7 +9,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Profile from "./pages/Profile";
 import ExerciseLibrary from "./pages/ExerciseLibrary";
-import ScheduleBuilder from "./pages/ScheduleBuilder";
+import WorkoutCalendar from "./pages/WorkoutCalendar";
 import SessionTracker from "./pages/SessionTracker";
 import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 import AuthPage from "./pages/AuthPage";
@@ -42,9 +42,9 @@ const App = () => (
                 <ExerciseLibrary />
               </ProtectedRoute>
             } />
-            <Route path="/schedule" element={
+            <Route path="/calendar" element={
               <ProtectedRoute>
-                <ScheduleBuilder />
+                <WorkoutCalendar />
               </ProtectedRoute>
             } />
             <Route path="/workout/:id" element={
