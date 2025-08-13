@@ -73,6 +73,7 @@ const WorkoutGenerator = () => {
     type: 'user' | 'assistant';
     content: string;
     timestamp: Date;
+    workout?: GeneratedWorkoutPlan;
   }>>([]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -136,8 +137,9 @@ const WorkoutGenerator = () => {
 
       const assistantMessage = {
         type: 'assistant' as const,
-        content: `Generated ${isRevision ? 'revised' : 'new'} workout plan: "${data.workout.name}"`,
-        timestamp: new Date()
+        content: `Generated ${isRevision ? 'revised' : 'new'} workout plan`,
+        timestamp: new Date(),
+        workout: data.workout
       };
       setConversationHistory(prev => [...prev, assistantMessage]);
 
@@ -454,6 +456,66 @@ const WorkoutGenerator = () => {
                               : 'bg-muted'
                           }`}>
                             <p className="text-sm">{message.content}</p>
+                            
+                            {/* Show workout details for assistant messages */}
+                            {message.type === 'assistant' && message.workout && (
+                              <div className="mt-3 space-y-2">
+                                <div className="border-t pt-2">
+                                  <h4 className="font-semibold text-base">{message.workout.name}</h4>
+                                  <p className="text-xs opacity-80 mt-1">{message.workout.description}</p>
+                                  
+                                  <div className="flex gap-2 mt-2 flex-wrap">
+                                    <Badge className="text-xs" variant="secondary">
+                                      {message.workout.duration_weeks} weeks
+                                    </Badge>
+                                    <Badge className="text-xs" variant="secondary">
+                                      {message.workout.days_per_week} days/week
+                                    </Badge>
+                                    <Badge className="text-xs" variant="secondary">
+                                      {message.workout.difficulty}
+                                    </Badge>
+                                  </div>
+                                  
+                                  <div className="mt-2">
+                                    <p className="text-xs font-medium">Goals:</p>
+                                    <div className="flex gap-1 mt-1 flex-wrap">
+                                      {message.workout.goals.map((goal, goalIndex) => (
+                                        <Badge key={goalIndex} variant="outline" className="text-xs">
+                                          {goal}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="mt-2">
+                                    <p className="text-xs font-medium">Workouts:</p>
+                                    <div className="space-y-1 mt-1">
+                                      {message.workout.workouts.map((workout, workoutIndex) => (
+                                        <div key={workoutIndex} className="text-xs">
+                                          <span className="font-medium">{workout.day}:</span> {workout.name} 
+                                          <span className="opacity-70"> ({workout.exercises.length} exercises)</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                  
+                                  {message.workout.id && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="mt-2 text-xs h-7"
+                                      onClick={() => {
+                                        setGeneratedWorkout(message.workout!);
+                                        setActiveTab('preview');
+                                      }}
+                                    >
+                                      View Details
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            
                             <p className="text-xs opacity-70 mt-1">
                               {message.timestamp.toLocaleTimeString()}
                             </p>
