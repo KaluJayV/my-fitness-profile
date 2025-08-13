@@ -109,6 +109,8 @@ export type Database = {
       ratings: {
         Row: {
           exercise_id: number
+          manual_1rm: number | null
+          manual_1rm_updated_at: string | null
           notes: string | null
           pump_score: number | null
           updated_at: string | null
@@ -116,6 +118,8 @@ export type Database = {
         }
         Insert: {
           exercise_id: number
+          manual_1rm?: number | null
+          manual_1rm_updated_at?: string | null
           notes?: string | null
           pump_score?: number | null
           updated_at?: string | null
@@ -123,6 +127,8 @@ export type Database = {
         }
         Update: {
           exercise_id?: number
+          manual_1rm?: number | null
+          manual_1rm_updated_at?: string | null
           notes?: string | null
           pump_score?: number | null
           updated_at?: string | null
@@ -321,6 +327,23 @@ export type Database = {
           rir: number
           performed_at: string
           max_weight: number
+        }[]
+      }
+      get_exercise_stats: {
+        Args: { p_user_id: string; p_exercise_id: number }
+        Returns: {
+          exercise_id: number
+          exercise_name: string
+          manual_1rm: number
+          manual_1rm_updated_at: string
+          calculated_1rm: number
+          best_1rm: number
+          total_sets: number
+          avg_weight: number
+          avg_reps: number
+          last_performed: string
+          pump_score: number
+          notes: string
         }[]
       }
       get_user_history: {
