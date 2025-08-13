@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
-import { NavigationHeader } from "@/components/NavigationHeader";
+import { AppHeader } from "@/components/AppHeader";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, Play, Dumbbell, Trash2, AlertTriangle } from "lucide-react";
@@ -145,9 +145,9 @@ const WorkoutCalendar = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <NavigationHeader />
+      <AppHeader title="Workout Calendar" showBack={true} />
       
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-4 lg:p-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold">Workout Calendar</h1>
           <p className="text-muted-foreground">View and manage your scheduled workouts</p>

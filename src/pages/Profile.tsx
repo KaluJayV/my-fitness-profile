@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { supabase } from "@/integrations/supabase/client"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -23,8 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { MultiSelect } from "@/components/ui/multi-select"
-import { Loader2, User } from "lucide-react"
-import { NavigationHeader } from "@/components/NavigationHeader"
+import { Loader2, User, LogOut } from "lucide-react"
+import { AppHeader } from "@/components/AppHeader"
 
 const profileSchema = z.object({
   username: z.string().min(2, "Username must be at least 2 characters"),
@@ -64,6 +65,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<any>(null)
   const { toast } = useToast()
+  const { signOut } = useAuth()
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -165,138 +167,169 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-background">
-      <NavigationHeader title="Profile Settings" />
-      <div className="p-4">
-        <div className="max-w-2xl mx-auto">
-        <Card>
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="h-8 w-8 text-primary" />
-            </div>
-            <CardTitle className="text-2xl">Profile Settings</CardTitle>
-            <CardDescription>
-              Set up your fitness profile to get personalized workouts
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Username</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Enter your username" 
-                          {...field} 
-                          className="text-base"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="goal"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Fitness Goal</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+      <AppHeader title="Profile Settings" showBack={true} />
+      <div className="container mx-auto p-4 lg:p-6">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <Card>
+            <CardHeader className="text-center">
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <User className="h-8 w-8 text-primary" />
+              </div>
+              <CardTitle className="text-2xl">Profile Settings</CardTitle>
+              <CardDescription>
+                Set up your fitness profile to get personalized workouts
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Username</FormLabel>
                         <FormControl>
-                          <SelectTrigger className="text-base">
-                            <SelectValue placeholder="Select your primary goal" />
-                          </SelectTrigger>
+                          <Input 
+                            placeholder="Enter your username" 
+                            {...field} 
+                            className="text-base"
+                          />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="hypertrophy">Hypertrophy (Muscle Growth)</SelectItem>
-                          <SelectItem value="strength">Strength</SelectItem>
-                          <SelectItem value="recomposition">Body Recomposition</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="experience"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Experience Level</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                  <FormField
+                    control={form.control}
+                    name="goal"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Fitness Goal</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="text-base">
+                              <SelectValue placeholder="Select your primary goal" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="hypertrophy">Hypertrophy (Muscle Growth)</SelectItem>
+                            <SelectItem value="strength">Strength</SelectItem>
+                            <SelectItem value="recomposition">Body Recomposition</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="experience"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Experience Level</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="text-base">
+                              <SelectValue placeholder="Select your experience level" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="beginner">Beginner (0-1 years)</SelectItem>
+                            <SelectItem value="intermediate">Intermediate (1-3 years)</SelectItem>
+                            <SelectItem value="advanced">Advanced (3+ years)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="injuries"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Injuries/Limitations</FormLabel>
                         <FormControl>
-                          <SelectTrigger className="text-base">
-                            <SelectValue placeholder="Select your experience level" />
-                          </SelectTrigger>
+                          <MultiSelect
+                            options={injuryOptions}
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Select any injuries or limitations"
+                            className="text-base"
+                          />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="beginner">Beginner (0-1 years)</SelectItem>
-                          <SelectItem value="intermediate">Intermediate (1-3 years)</SelectItem>
-                          <SelectItem value="advanced">Advanced (3+ years)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="injuries"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Injuries/Limitations</FormLabel>
-                      <FormControl>
-                        <MultiSelect
-                          options={injuryOptions}
-                          value={field.value}
-                          onChange={field.onChange}
-                          placeholder="Select any injuries or limitations"
-                          className="text-base"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="equipment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Available Equipment</FormLabel>
+                        <FormControl>
+                          <MultiSelect
+                            options={equipmentOptions}
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Select available equipment"
+                            className="text-base"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="equipment"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Available Equipment</FormLabel>
-                      <FormControl>
-                        <MultiSelect
-                          options={equipmentOptions}
-                          value={field.value}
-                          onChange={field.onChange}
-                          placeholder="Select available equipment"
-                          className="text-base"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <Button 
+                    type="submit" 
+                    className="w-full text-base py-6" 
+                    disabled={loading}
+                  >
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Save Profile
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
 
-                <Button 
-                  type="submit" 
-                  className="w-full text-base py-6" 
-                  disabled={loading}
-                >
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Profile
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+          {/* Account Management Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Account Management</CardTitle>
+              <CardDescription>
+                Manage your account settings and preferences
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {user && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <p className="font-medium">Email</p>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    onClick={signOut} 
+                    variant="destructive" 
+                    className="w-full text-base py-6"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Search, Star } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ExerciseDetail } from "@/components/ExerciseDetail";
-import { NavigationHeader } from "@/components/NavigationHeader";
+import { AppHeader } from "@/components/AppHeader";
 
 interface Exercise {
   id: number;
@@ -86,17 +86,15 @@ const ExerciseLibrary = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <NavigationHeader title="Exercise Library" />
-        <div className="p-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="animate-pulse">
+        <AppHeader title="Exercise Library" showBack={true} />
+        <div className="container mx-auto p-4 lg:p-6">
+          <div className="animate-pulse">
             <div className="h-8 bg-muted rounded w-1/3 mb-6"></div>
             <div className="h-10 bg-muted rounded mb-6"></div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="h-32 bg-muted rounded"></div>
               ))}
-            </div>
             </div>
           </div>
         </div>
@@ -106,11 +104,10 @@ const ExerciseLibrary = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <NavigationHeader title="Exercise Library" />
-      <div className="p-4">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold mb-4">Browse Exercises</h2>
+      <AppHeader title="Exercise Library" showBack={true} />
+      <div className="container mx-auto p-4 lg:p-6">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold mb-4">Browse Exercises</h2>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
@@ -119,8 +116,8 @@ const ExerciseLibrary = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
-            </div>
           </div>
+        </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredExercises.map((exercise) => (
@@ -185,7 +182,6 @@ const ExerciseLibrary = () => {
             onOpenChange={(open) => !open && setSelectedExercise(null)}
           />
         )}
-        </div>
       </div>
     </div>
   );

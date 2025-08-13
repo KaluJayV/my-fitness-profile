@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { NavigationHeader } from '@/components/NavigationHeader';
+import { AppHeader } from '@/components/AppHeader';
 import { VoiceInterface } from '@/components/VoiceInterface';
 import { GeneratedWorkout } from '@/components/GeneratedWorkout';
 import { useToast } from '@/components/ui/use-toast';
@@ -305,11 +305,11 @@ const WorkoutGenerator = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <NavigationHeader />
+      <AppHeader title="AI Workout Generator" showBack={true} />
       
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
+      <div className="container mx-auto p-4 lg:p-6">
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold mb-2 flex items-center justify-center gap-3">
             <Sparkles className="h-8 w-8 text-primary" />
             AI Workout Generator
           </h1>

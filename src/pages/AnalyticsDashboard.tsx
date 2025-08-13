@@ -6,7 +6,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
-import { NavigationHeader } from "@/components/NavigationHeader";
+import { AppHeader } from "@/components/AppHeader";
 
 interface ProgressData {
   week: string;
@@ -176,8 +176,8 @@ const AnalyticsDashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <NavigationHeader title="Analytics Dashboard" />
-        <div className="p-4">
+        <AppHeader title="Analytics Dashboard" showBack={true} />
+        <div className="container mx-auto p-4 lg:p-6">
           <div className="max-w-6xl mx-auto">
             <div className="animate-pulse">
             <div className="h-8 bg-muted rounded w-1/3 mb-6"></div>
@@ -199,8 +199,8 @@ const AnalyticsDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <NavigationHeader title="Analytics Dashboard" />
-      <div className="p-4">
+      <AppHeader title="Analytics Dashboard" showBack={true} />
+      <div className="container mx-auto p-4 lg:p-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
