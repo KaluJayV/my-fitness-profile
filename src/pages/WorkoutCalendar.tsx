@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { NavigationHeader } from "@/components/NavigationHeader";
-import { ChevronLeft, ChevronRight, Play, Dumbbell } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { ChevronLeft, ChevronRight, Play, Dumbbell, Trash2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
@@ -93,6 +95,54 @@ const WorkoutCalendar = () => {
     return getWorkoutsForDate(date).length > 0;
   };
 
+  const deleteWorkout = async (workoutId: string) => {
+    try {
+      const { error } = await supabase
+        .from('workouts')
+        .delete()
+        .eq('id', workoutId);
+
+      if (error) throw error;
+
+      toast.success('Workout deleted successfully');
+      fetchWorkouts(); // Refresh the list
+    } catch (error) {
+      console.error('Error deleting workout:', error);
+      toast.error('Failed to delete workout');
+    }
+  };
+
+  const deleteProgramWorkouts = async (programId: string) => {
+    try {
+      const { error } = await supabase
+        .from('workouts')
+        .delete()
+        .eq('program_id', programId);
+
+      if (error) throw error;
+
+      toast.success('All program workouts deleted successfully');
+      fetchWorkouts(); // Refresh the list
+    } catch (error) {
+      console.error('Error deleting program workouts:', error);
+      toast.error('Failed to delete program workouts');
+    }
+  };
+
+  // Get unique programs from selected date workouts
+  const getUniqueProgramsForDate = (date: Date) => {
+    const dayWorkouts = getWorkoutsForDate(date);
+    const programs = new Map();
+    
+    dayWorkouts.forEach(workout => {
+      if (workout.program) {
+        programs.set(workout.program.id, workout.program);
+      }
+    });
+    
+    return Array.from(programs.values());
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <NavigationHeader />
@@ -161,9 +211,42 @@ const WorkoutCalendar = () => {
           <div>
             <Card>
               <CardHeader>
-                <CardTitle>
-                  {selectedDate ? format(selectedDate, 'EEEE, MMMM d') : 'Select a date'}
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>
+                    {selectedDate ? format(selectedDate, 'EEEE, MMMM d') : 'Select a date'}
+                  </CardTitle>
+                  {selectedDate && selectedDateWorkouts.length > 0 && (
+                    <div className="flex gap-2">
+                      {getUniqueProgramsForDate(selectedDate).map((program) => (
+                        <AlertDialog key={program.id}>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <AlertTriangle className="h-4 w-4 mr-1" />
+                              Delete {program.name}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Program Workouts</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete all workouts from the "{program.name}" program? This will remove all scheduled workouts for this program across all dates. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => deleteProgramWorkouts(program.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete All
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {loading ? (
@@ -197,12 +280,38 @@ const WorkoutCalendar = () => {
                             )}
                           </div>
                         </div>
-                        <Button asChild size="sm" className="w-full">
-                          <Link to={`/workout/${workout.id}`}>
-                            <Play className="h-4 w-4 mr-1" />
-                            Start Workout
-                          </Link>
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button asChild size="sm" className="flex-1">
+                            <Link to={`/workout/${workout.id}`}>
+                              <Play className="h-4 w-4 mr-1" />
+                              Start Workout
+                            </Link>
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Workout</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete this workout? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteWorkout(workout.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </div>
                     ))}
                   </div>

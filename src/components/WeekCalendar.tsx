@@ -3,7 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, Play } from "lucide-react";
+import { X, Play, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Program {
   id: string;
@@ -23,9 +26,10 @@ interface WeekCalendarProps {
   currentWeek: Date;
   workouts: Workout[];
   onWorkoutSchedule: (workoutId: string, date: Date | null) => void;
+  onWorkoutDelete?: () => void;
 }
 
-export const WeekCalendar = ({ currentWeek, workouts, onWorkoutSchedule }: WeekCalendarProps) => {
+export const WeekCalendar = ({ currentWeek, workouts, onWorkoutSchedule, onWorkoutDelete }: WeekCalendarProps) => {
   const navigate = useNavigate();
   const weekDays = useMemo(() => {
     const start = new Date(currentWeek);
@@ -59,6 +63,23 @@ export const WeekCalendar = ({ currentWeek, workouts, onWorkoutSchedule }: WeekC
 
   const removeWorkout = (workoutId: string) => {
     onWorkoutSchedule(workoutId, null);
+  };
+
+  const deleteWorkout = async (workoutId: string) => {
+    try {
+      const { error } = await supabase
+        .from('workouts')
+        .delete()
+        .eq('id', workoutId);
+
+      if (error) throw error;
+
+      toast.success('Workout deleted successfully');
+      onWorkoutDelete?.(); // Refresh the parent component
+    } catch (error) {
+      console.error('Error deleting workout:', error);
+      toast.error('Failed to delete workout');
+    }
   };
 
   const formatWorkoutTitle = (workout: Workout) => {
@@ -144,6 +165,35 @@ export const WeekCalendar = ({ currentWeek, workouts, onWorkoutSchedule }: WeekC
                             >
                               <X className="h-3 w-3" />
                             </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Trash2 className="h-3 w-3 text-destructive" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Workout</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to permanently delete this workout? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteWorkout(workout.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </div>
                       </CardContent>
