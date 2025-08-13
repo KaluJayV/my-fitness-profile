@@ -138,8 +138,8 @@ export const WorkoutScheduler: React.FC<WorkoutSchedulerProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 mt-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pr-4">
+        <ScrollArea className="flex-1 mt-4 max-h-[calc(90vh-120px)]">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pr-4 pb-4">
           {/* Left Side - Workout Plan Overview */}
           <div className="space-y-4">
             <Card>
