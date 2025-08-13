@@ -14,6 +14,7 @@ import SessionTracker from "./pages/SessionTracker";
 import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
+import WorkoutGenerator from "./pages/WorkoutGenerator";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,11 @@ const App = () => (
             <Route path="/analytics" element={
               <ProtectedRoute>
                 <AnalyticsDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/generator" element={
+              <ProtectedRoute>
+                <WorkoutGenerator />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

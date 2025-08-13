@@ -95,8 +95,10 @@ const Index = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full text-base py-6" variant="outline" disabled>
-                Coming Soon
+              <Button asChild className="w-full text-base py-6">
+                <Link to="/generator">
+                  Generate Workouts
+                </Link>
               </Button>
             </CardContent>
           </Card>

@@ -1,1 +1,26 @@
 project_id = "mrydtdiphpjacqronemd"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+port = 9999
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://localhost:3000"]
+jwt_expiry = 3600
+refresh_token_rotation_enabled = true
+enable_signup = true
+
+[edge_functions]
+enabled = true
+
+[functions.generate-smart-workout]
+verify_jwt = false
+
+[functions.voice-to-text]
+verify_jwt = false
