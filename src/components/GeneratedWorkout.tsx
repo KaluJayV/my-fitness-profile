@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { WorkoutScheduler } from '@/components/WorkoutScheduler';
 import { 
   Save, 
   Edit3, 
@@ -60,7 +61,7 @@ interface GeneratedWorkoutPlan {
 interface GeneratedWorkoutProps {
   workout: GeneratedWorkoutPlan;
   onRevision: (prompt: string) => void;
-  onSave: () => void;
+  onSave: (schedules: any[]) => void;
   exercises: Exercise[];
 }
 
@@ -74,6 +75,7 @@ export const GeneratedWorkout: React.FC<GeneratedWorkoutProps> = ({
   const [editedWorkout, setEditedWorkout] = useState<GeneratedWorkoutPlan>(workout);
   const [revisionPrompt, setRevisionPrompt] = useState('');
   const [activeDay, setActiveDay] = useState(0);
+  const [showScheduler, setShowScheduler] = useState(false);
 
   const handleRevisionSubmit = () => {
     if (revisionPrompt.trim()) {
@@ -145,9 +147,9 @@ export const GeneratedWorkout: React.FC<GeneratedWorkoutProps> = ({
                 <Edit3 className="h-4 w-4 mr-2" />
                 {isEditing ? 'View Mode' : 'Edit Mode'}
               </Button>
-              <Button onClick={onSave}>
-                <Save className="h-4 w-4 mr-2" />
-                Save Workout
+              <Button onClick={() => setShowScheduler(true)}>
+                <Calendar className="h-4 w-4 mr-2" />
+                Schedule & Save
               </Button>
             </div>
           </div>
@@ -356,6 +358,17 @@ export const GeneratedWorkout: React.FC<GeneratedWorkoutProps> = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* Workout Scheduler */}
+      <WorkoutScheduler
+        workout={workout}
+        isOpen={showScheduler}
+        onSave={(schedules) => {
+          onSave(schedules);
+          setShowScheduler(false);
+        }}
+        onCancel={() => setShowScheduler(false)}
+      />
     </div>
   );
 };

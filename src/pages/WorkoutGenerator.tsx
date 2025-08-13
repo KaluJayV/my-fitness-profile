@@ -242,14 +242,39 @@ const WorkoutGenerator = () => {
     }
   };
 
-  const saveWorkout = async () => {
+  const saveWorkout = async (schedules: any[]) => {
     if (!generatedWorkout) return;
     
     try {
-      // Implementation for saving workout to database
+      // First, create the program
+      const { data: program, error: programError } = await supabase
+        .from('programs')
+        .insert({
+          name: generatedWorkout.name,
+          days_per_week: generatedWorkout.days_per_week,
+          generator_source: 'ai_generated'
+        })
+        .select()
+        .single();
+
+      if (programError) throw programError;
+
+      // Then create individual workout entries for each scheduled date
+      const workoutEntries = schedules.map(schedule => ({
+        program_id: program.id,
+        workout_date: schedule.date.toISOString().split('T')[0],
+        json_plan: generatedWorkout.workouts[schedule.workoutIndex] as any
+      }));
+
+      const { error: workoutsError } = await supabase
+        .from('workouts')
+        .insert(workoutEntries);
+
+      if (workoutsError) throw workoutsError;
+
       toast({
         title: "Success",
-        description: "Workout plan saved!",
+        description: `Workout plan saved with ${schedules.length} scheduled workouts!`,
       });
     } catch (error) {
       console.error('Error saving workout:', error);
