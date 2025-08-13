@@ -21,6 +21,14 @@ interface Exercise {
   name: string;
   workout_exercise_id?: string;
   sets: Set[];
+  planData?: {
+    sets: number;
+    reps: string;
+    rest: string;
+    suggested_weight: string;
+    notes: string;
+    primary_muscles: string[];
+  };
 }
 
 interface Workout {
@@ -116,11 +124,27 @@ const SessionTracker = () => {
           workoutExercise = newWorkoutExercise;
         }
 
+        // Create initial empty sets based on the plan
+        const initialSets: Set[] = Array.from({ length: planExercise.sets || 3 }, () => ({
+          id: crypto.randomUUID(),
+          weight: null,
+          reps: null,
+          rir: null
+        }));
+
         return {
           id: planExercise.exercise_id || planExercise.id,
-          name: planExercise.name || planExercise.exercise?.name || `Exercise ${index + 1}`,
+          name: planExercise.exercise_name || planExercise.name || planExercise.exercise?.name || `Exercise ${index + 1}`,
           workout_exercise_id: workoutExercise.id,
-          sets: [] as Set[]
+          sets: initialSets,
+          planData: {
+            sets: planExercise.sets || 3,
+            reps: planExercise.reps || '',
+            rest: planExercise.rest || '',
+            suggested_weight: planExercise.suggested_weight || '',
+            notes: planExercise.notes || '',
+            primary_muscles: planExercise.primary_muscles || []
+          }
         };
       });
 
@@ -305,6 +329,31 @@ const SessionTracker = () => {
                   {exercise.sets.length} set{exercise.sets.length !== 1 ? 's' : ''}
                 </Badge>
               </div>
+              {exercise.planData && (
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap gap-4">
+                    <span><strong>Sets:</strong> {exercise.planData.sets}</span>
+                    <span><strong>Reps:</strong> {exercise.planData.reps}</span>
+                    <span><strong>Rest:</strong> {exercise.planData.rest}</span>
+                  </div>
+                  {exercise.planData.suggested_weight && (
+                    <div><strong>Weight:</strong> {exercise.planData.suggested_weight}</div>
+                  )}
+                  {exercise.planData.notes && (
+                    <div><strong>Notes:</strong> {exercise.planData.notes}</div>
+                  )}
+                  {exercise.planData.primary_muscles.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      <strong>Muscles:</strong>
+                      {exercise.planData.primary_muscles.map((muscle, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {muscle}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </CardHeader>
             <CardContent>
               <ExerciseSetTable
