@@ -38,7 +38,7 @@ serve(async (req) => {
 
     // Build context for the LLM
     const exerciseLibrary = exercises.map(ex => 
-      `ID: ${ex.id}, Name: "${ex.name}", Muscles: [${ex.muscles.join(', ')}]`
+      `ID: ${ex.id}, Name: "${ex.name}", Muscles: [${ex.muscles ? ex.muscles.join(', ') : 'not specified'}]`
     ).join('\n');
 
     const conversationContext = conversationHistory && conversationHistory.length > 0
@@ -165,12 +165,12 @@ ${conversationContext}`;
           if (similarExercise) {
             exercise.exercise_id = similarExercise.id;
             exercise.exercise_name = similarExercise.name;
-            exercise.primary_muscles = similarExercise.muscles;
+            exercise.primary_muscles = similarExercise.muscles || [];
           } else {
             // Use first exercise as fallback
             exercise.exercise_id = exercises[0].id;
             exercise.exercise_name = exercises[0].name;
-            exercise.primary_muscles = exercises[0].muscles;
+            exercise.primary_muscles = exercises[0].muscles || [];
           }
         }
       }
