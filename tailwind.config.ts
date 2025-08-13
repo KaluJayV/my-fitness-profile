@@ -61,7 +61,13 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Custom gym colors
+				'steel-blue': 'hsl(var(--steel-blue))',
+				'olive-green': 'hsl(var(--olive-green))',
+				'charcoal': 'hsl(var(--charcoal))',
+				'electric-blue': 'hsl(var(--electric-blue))',
+				'burnt-orange': 'hsl(var(--burnt-orange))'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
