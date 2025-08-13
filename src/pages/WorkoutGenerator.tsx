@@ -122,11 +122,14 @@ const WorkoutGenerator = () => {
         muscles: ex.primary_muscles
       }));
 
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const requestData = {
         prompt: userPrompt,
         exercises: exerciseLibrary,
         currentWorkout: isRevision ? generatedWorkout : null,
-        conversationHistory: conversationHistory.slice(-6) // Last 6 messages for context
+        conversationHistory: conversationHistory.slice(-6), // Last 6 messages for context
+        userId: user?.id // Include user ID for weight suggestions
       };
 
       const { data, error } = await supabase.functions.invoke('generate-smart-workout', {

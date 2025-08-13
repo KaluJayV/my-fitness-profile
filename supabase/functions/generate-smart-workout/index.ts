@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,6 +18,7 @@ interface WorkoutRequest {
   exercises: Exercise[];
   currentWorkout?: any;
   conversationHistory?: Array<{ type: string; content: string; timestamp: Date }>;
+  userId?: string;
 }
 
 serve(async (req) => {
@@ -25,7 +27,7 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, exercises, currentWorkout, conversationHistory }: WorkoutRequest = await req.json();
+    const { prompt, exercises, currentWorkout, conversationHistory, userId }: WorkoutRequest = await req.json();
     
     if (!prompt) {
       throw new Error('Prompt is required');
@@ -36,10 +38,75 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    // Build context for the LLM
-    const exerciseLibrary = exercises.map(ex => 
-      `ID: ${ex.id}, Name: "${ex.name}", Muscles: [${ex.muscles ? ex.muscles.join(', ') : 'not specified'}]`
-    ).join('\n');
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Fetch user's training history for weight suggestions
+    let userHistoryData: any = {};
+    if (userId) {
+      try {
+        console.log('Fetching 1RM data for user:', userId);
+        
+        // Get 1RM data for each exercise in the library
+        const exercisePromises = exercises.map(async (exercise) => {
+          const { data, error } = await supabase.rpc('get_exercise_1rm_data', {
+            p_user_id: userId,
+            p_exercise_id: exercise.id
+          });
+          
+          if (error) {
+            console.error(`Error fetching data for exercise ${exercise.id}:`, error);
+            return null;
+          }
+          
+          if (data && data.length > 0) {
+            // Calculate best 1RM from recent sets
+            const sets = data.map((set: any) => ({
+              weight: parseFloat(set.weight),
+              reps: set.reps,
+              rir: set.rir || 0
+            }));
+            
+            // Use Epley formula for best estimate
+            const best1RM = Math.max(...data.map((set: any) => parseFloat(set.estimated_1rm)));
+            
+            return {
+              exerciseId: exercise.id,
+              exerciseName: exercise.name,
+              estimated1RM: best1RM,
+              recentSets: sets.slice(0, 5) // Last 5 sets
+            };
+          }
+          
+          return null;
+        });
+        
+        const exerciseHistory = await Promise.all(exercisePromises);
+        userHistoryData = exerciseHistory
+          .filter(data => data !== null)
+          .reduce((acc, data) => {
+            acc[data.exerciseId] = data;
+            return acc;
+          }, {});
+          
+        console.log('User history data collected:', Object.keys(userHistoryData).length, 'exercises');
+      } catch (error) {
+        console.error('Error fetching user history:', error);
+        // Continue without history data
+      }
+    }
+
+    // Build context for the LLM including user history
+    const exerciseLibrary = exercises.map(ex => {
+      const history = userHistoryData[ex.id];
+      let historyInfo = '';
+      if (history) {
+        historyInfo = ` | User's Est. 1RM: ${history.estimated1RM.toFixed(1)}kg`;
+      }
+      return `ID: ${ex.id}, Name: "${ex.name}", Muscles: [${ex.muscles ? ex.muscles.join(', ') : 'not specified'}]${historyInfo}`;
+    }).join('\n');
 
     const conversationContext = conversationHistory && conversationHistory.length > 0
       ? '\n\nPrevious conversation:\n' + conversationHistory.map(msg => 
@@ -58,6 +125,9 @@ CRITICAL REQUIREMENTS:
 4. Include realistic sets, reps, and rest periods
 5. Consider muscle balance and recovery
 6. Provide clear, actionable workout structure
+7. IMPORTANT: When a user has historical data (Est. 1RM shown), provide specific weight suggestions based on their strength levels
+8. Use percentage-based recommendations: 75-80% of 1RM for 6-12 reps, 85-90% for 3-5 reps, 65-75% for 12+ reps
+9. For exercises without user history, suggest "Start with bodyweight" or "Begin with light weight"
 
 Available Exercise Library:
 ${exerciseLibrary}
@@ -82,7 +152,8 @@ RESPONSE FORMAT - Return ONLY valid JSON:
           "sets": 3,
           "reps": "8-12",
           "rest": "90s",
-          "notes": "Optional form cues or modifications",
+          "suggested_weight": "75kg" or "Bodyweight" or "Start light",
+          "notes": "Form cues and weight rationale based on user's 1RM if available",
           "primary_muscles": ["muscle1", "muscle2"]
         }
       ]

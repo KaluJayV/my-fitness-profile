@@ -36,6 +36,7 @@ interface WorkoutExercise {
   sets: number;
   reps: string;
   rest: string;
+  suggested_weight?: string;
   notes?: string;
   primary_muscles: string[];
 }
@@ -268,7 +269,7 @@ export const GeneratedWorkout: React.FC<GeneratedWorkoutProps> = ({
                                 )}
                               </div>
 
-                              <div className="grid grid-cols-3 gap-4 text-sm">
+                              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                                 <div>
                                   <span className="font-medium">Sets:</span>
                                   {isEditing ? (
@@ -292,6 +293,21 @@ export const GeneratedWorkout: React.FC<GeneratedWorkoutProps> = ({
                                     />
                                   ) : (
                                     <p className="mt-1">{exercise.reps}</p>
+                                  )}
+                                </div>
+                                <div>
+                                  <span className="font-medium">Weight:</span>
+                                  {isEditing ? (
+                                    <Input
+                                      value={exercise.suggested_weight || ''}
+                                      onChange={(e) => updateExercise(dayIndex, exerciseIndex, 'suggested_weight', e.target.value)}
+                                      className="mt-1"
+                                      placeholder="Suggested weight"
+                                    />
+                                  ) : (
+                                    <p className="mt-1 text-primary font-medium">
+                                      {exercise.suggested_weight || 'TBD'}
+                                    </p>
                                   )}
                                 </div>
                                 <div>

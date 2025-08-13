@@ -127,7 +127,7 @@ export const WorkoutScheduler: React.FC<WorkoutSchedulerProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onCancel}>
-      <DialogContent className="max-w-4xl max-h-[90vh]">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CalendarIcon className="h-5 w-5" />
@@ -138,135 +138,137 @@ export const WorkoutScheduler: React.FC<WorkoutSchedulerProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[calc(90vh-100px)] overflow-y-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4 pr-4">
-            {/* Left Side - Workout Plan Overview */}
-            <div className="space-y-4">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">{workout.name}</CardTitle>
-                  <div className="flex gap-2">
-                    <Badge className={getDifficultyColor(workout.difficulty)}>
-                      {workout.difficulty}
-                    </Badge>
-                    <Badge variant="outline">
-                      {workout.duration_weeks} weeks
-                    </Badge>
-                    <Badge variant="outline">
-                      {workout.days_per_week} days/week
-                    </Badge>
-                  </div>
-                </CardHeader>
-              </Card>
+        <ScrollArea className="flex-1 pr-4">
+          <div className="max-h-[calc(90vh-160px)]">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+              {/* Left Side - Workout Plan Overview */}
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">{workout.name}</CardTitle>
+                    <div className="flex gap-2">
+                      <Badge className={getDifficultyColor(workout.difficulty)}>
+                        {workout.difficulty}
+                      </Badge>
+                      <Badge variant="outline">
+                        {workout.duration_weeks} weeks
+                      </Badge>
+                      <Badge variant="outline">
+                        {workout.days_per_week} days/week
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Start Date</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={(date) => date && setStartDate(date)}
-                    className="rounded-md border"
-                  />
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right Side - Day Mapping */}
-            <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Assign Workout Days</CardTitle>
-                  <CardDescription>
-                    Map each workout to a day of the week
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {workout.workouts.map((workoutDay, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex-1">
-                          <p className="font-medium">{workoutDay.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {workoutDay.exercises.length} exercises
-                          </p>
-                        </div>
-                        <Select
-                          value={workoutDayMappings[index]?.toString() || ''}
-                          onValueChange={(value) => updateWorkoutDayMapping(index, parseInt(value))}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue placeholder="Day" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {DAYS_OF_WEEK.map((day, dayIndex) => (
-                              <SelectItem key={dayIndex} value={dayIndex.toString()}>
-                                {day}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="flex gap-2 mt-6">
-                    <Button onClick={generateSchedule} className="flex-1">
-                      <CalendarIcon className="h-4 w-4 mr-2" />
-                      Generate Schedule
-                    </Button>
-                    <Button variant="outline" onClick={initializeDefaultMappings}>
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Reset
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Schedule Preview */}
-              {showPreview && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Schedule Preview</CardTitle>
+                    <CardTitle className="text-base">Start Date</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={(date) => date && setStartDate(date)}
+                      className="rounded-md border"
+                    />
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Right Side - Day Mapping */}
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Assign Workout Days</CardTitle>
                     <CardDescription>
-                      {generatedSchedule.length} workouts over {workout.duration_weeks} weeks
+                      Map each workout to a day of the week
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="h-48">
-                      <div className="space-y-2">
-                        {generatedSchedule.slice(0, 14).map((schedule, index) => (
-                          <div key={index} className="flex justify-between items-center p-2 border rounded text-sm">
-                            <span className="font-medium">
-                              {workout.workouts[schedule.workoutIndex].name}
-                            </span>
-                            <span className="text-muted-foreground">
-                              {format(schedule.date, 'MMM d, yyyy')} ({DAYS_OF_WEEK[schedule.dayOfWeek]})
-                            </span>
+                    <div className="space-y-4">
+                      {workout.workouts.map((workoutDay, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex-1">
+                            <p className="font-medium">{workoutDay.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {workoutDay.exercises.length} exercises
+                            </p>
                           </div>
-                        ))}
-                        {generatedSchedule.length > 14 && (
-                          <div className="text-center text-sm text-muted-foreground py-2">
-                            ... and {generatedSchedule.length - 14} more workouts
-                          </div>
-                        )}
-                      </div>
-                    </ScrollArea>
+                          <Select
+                            value={workoutDayMappings[index]?.toString() || ''}
+                            onValueChange={(value) => updateWorkoutDayMapping(index, parseInt(value))}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue placeholder="Day" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {DAYS_OF_WEEK.map((day, dayIndex) => (
+                                <SelectItem key={dayIndex} value={dayIndex.toString()}>
+                                  {day}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ))}
+                    </div>
 
-                    <div className="flex gap-2 mt-4">
-                      <Button onClick={handleSave} className="flex-1">
-                        <Save className="h-4 w-4 mr-2" />
-                        Save to Calendar
+                    <div className="flex gap-2 mt-6">
+                      <Button onClick={generateSchedule} className="flex-1">
+                        <CalendarIcon className="h-4 w-4 mr-2" />
+                        Generate Schedule
                       </Button>
-                      <Button variant="outline" onClick={onCancel}>
-                        Cancel
+                      <Button variant="outline" onClick={initializeDefaultMappings}>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Reset
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
-              )}
+
+                {/* Schedule Preview */}
+                {showPreview && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Schedule Preview</CardTitle>
+                      <CardDescription>
+                        {generatedSchedule.length} workouts over {workout.duration_weeks} weeks
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-48">
+                        <div className="space-y-2">
+                          {generatedSchedule.slice(0, 14).map((schedule, index) => (
+                            <div key={index} className="flex justify-between items-center p-2 border rounded text-sm">
+                              <span className="font-medium">
+                                {workout.workouts[schedule.workoutIndex].name}
+                              </span>
+                              <span className="text-muted-foreground">
+                                {format(schedule.date, 'MMM d, yyyy')} ({DAYS_OF_WEEK[schedule.dayOfWeek]})
+                              </span>
+                            </div>
+                          ))}
+                          {generatedSchedule.length > 14 && (
+                            <div className="text-center text-sm text-muted-foreground py-2">
+                              ... and {generatedSchedule.length - 14} more workouts
+                            </div>
+                          )}
+                        </div>
+                      </ScrollArea>
+
+                      <div className="flex gap-2 mt-4">
+                        <Button onClick={handleSave} className="flex-1">
+                          <Save className="h-4 w-4 mr-2" />
+                          Save to Calendar
+                        </Button>
+                        <Button variant="outline" onClick={onCancel}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             </div>
           </div>
         </ScrollArea>
