@@ -248,13 +248,25 @@ const WorkoutGenerator = () => {
     if (!generatedWorkout) return;
     
     try {
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to save workouts",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // First, create the program
       const { data: program, error: programError } = await supabase
         .from('programs')
         .insert({
           name: generatedWorkout.name,
           days_per_week: generatedWorkout.days_per_week,
-          generator_source: 'ai_generated'
+          generator_source: 'ai_generated',
+          user_id: user.id
         })
         .select()
         .single();
