@@ -40,7 +40,7 @@ const Index = () => {
                 Get AI-generated workout plans tailored to your profile and preferences
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="h-24 flex items-center">
               <Button asChild className="w-full text-base py-6">
                 <Link to="/generator">
                   Generate Workouts
@@ -59,7 +59,7 @@ const Index = () => {
                 Browse and rate exercises with detailed demonstrations and muscle targeting
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="h-24 flex items-center">
               <Button asChild className="w-full text-base py-6">
                 <Link to="/exercises">
                   Browse Exercises
@@ -78,7 +78,7 @@ const Index = () => {
                 View your scheduled workouts in a calendar format and track your fitness journey
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="h-24 flex items-center">
               <Button asChild className="w-full text-base py-6">
                 <Link to="/calendar">
                   View Calendar
