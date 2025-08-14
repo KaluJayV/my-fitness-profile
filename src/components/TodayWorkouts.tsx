@@ -70,11 +70,21 @@ export const TodayWorkouts = () => {
     if (workout.json_plan?.exercises?.length) {
       return workout.json_plan.exercises.map((ex: any) => ({
         name: ex.name,
-        sets: ex.sets || [],
-        targetMuscles: ex.target_muscles || []
+        sets: ex.sets || ex.planned_sets || 3, // fallback to 3 if not specified
+        reps: ex.reps || ex.planned_reps || ex.rep_range || "8-12", // fallback rep range
+        weight: ex.weight || ex.planned_weight,
+        targetMuscles: ex.target_muscles || ex.primary_muscles || []
       }));
     }
     return [];
+  };
+
+  const formatSetsReps = (sets: any, reps: any) => {
+    const setsCount = typeof sets === 'number' ? sets : (sets?.length || 3);
+    const repsDisplay = typeof reps === 'string' ? reps : 
+                       typeof reps === 'number' ? reps.toString() :
+                       Array.isArray(reps) ? `${Math.min(...reps)}-${Math.max(...reps)}` : "8-12";
+    return `${setsCount} × ${repsDisplay}`;
   };
 
   if (loading) {
@@ -144,21 +154,13 @@ export const TodayWorkouts = () => {
                         <div key={index} className="bg-muted/30 rounded-md p-2">
                           <div className="flex items-center justify-between">
                             <span className="text-sm font-medium">{exercise.name}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {exercise.sets.length > 0 
-                                ? `${exercise.sets.length} set${exercise.sets.length !== 1 ? 's' : ''}`
-                                : 'Sets TBD'
-                              }
-                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {formatSetsReps(exercise.sets, exercise.reps)}
+                            </Badge>
                           </div>
-                          {exercise.sets.length > 0 && (
+                          {exercise.weight && (
                             <div className="mt-1 text-xs text-muted-foreground">
-                              {exercise.sets.map((set: any, setIndex: number) => (
-                                <span key={setIndex} className="mr-2">
-                                  {set.reps ? `${set.reps} reps` : 'Reps TBD'}
-                                  {set.weight && ` @ ${set.weight}kg`}
-                                </span>
-                              ))}
+                              Target weight: {exercise.weight}kg
                             </div>
                           )}
                         </div>
