@@ -281,7 +281,7 @@ const WorkoutCalendar = () => {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button asChild size="sm" className="flex-1">
+                          <Button asChild size="sm" className="flex-1 h-9">
                             <Link to={`/workout/${workout.id}`}>
                               <Play className="h-4 w-4 mr-1" />
                               Start Workout
@@ -289,7 +289,7 @@ const WorkoutCalendar = () => {
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button variant="destructive" size="sm">
+                              <Button variant="destructive" size="sm" className="h-9">
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </AlertDialogTrigger>
