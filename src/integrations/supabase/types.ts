@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -310,50 +310,50 @@ export type Database = {
         Returns: unknown
       }
       get_exercise_1rm_data: {
-        Args: { p_user_id: string; p_exercise_id: number }
+        Args: { p_exercise_id: number; p_user_id: string }
         Returns: {
-          weight: number
+          estimated_1rm: number
+          performed_at: string
           reps: number
           rir: number
-          performed_at: string
-          estimated_1rm: number
+          weight: number
         }[]
       }
       get_exercise_history: {
-        Args: { p_user_id: string; p_exercise_id: number; p_limit?: number }
+        Args: { p_exercise_id: number; p_limit?: number; p_user_id: string }
         Returns: {
-          weight: number
+          max_weight: number
+          performed_at: string
           reps: number
           rir: number
-          performed_at: string
-          max_weight: number
+          weight: number
         }[]
       }
       get_exercise_stats: {
-        Args: { p_user_id: string; p_exercise_id: number }
+        Args: { p_exercise_id: number; p_user_id: string }
         Returns: {
+          avg_reps: number
+          avg_weight: number
+          best_1rm: number
+          calculated_1rm: number
           exercise_id: number
           exercise_name: string
+          last_performed: string
           manual_1rm: number
           manual_1rm_updated_at: string
-          calculated_1rm: number
-          best_1rm: number
-          total_sets: number
-          avg_weight: number
-          avg_reps: number
-          last_performed: string
-          pump_score: number
           notes: string
+          pump_score: number
+          total_sets: number
         }[]
       }
       get_user_history: {
         Args: { p_user: string }
         Returns: {
-          exercise_name: string
-          total_sets: number
-          avg_weight: number
           avg_reps: number
+          avg_weight: number
+          exercise_name: string
           last_performed: string
+          total_sets: number
         }[]
       }
       halfvec_avg: {
