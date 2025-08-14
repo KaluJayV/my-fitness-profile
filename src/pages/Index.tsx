@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Dumbbell, Library, CalendarDays } from "lucide-react";
+import { Dumbbell, Library, CalendarDays } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { TodayWorkouts } from "@/components/TodayWorkouts";
@@ -29,24 +29,6 @@ const Index = () => {
         </div>
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="h-8 w-8 text-primary" />
-              </div>
-              <CardTitle>Set Up Your Profile</CardTitle>
-              <CardDescription>
-                Configure your fitness goals, experience level, and available equipment
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full text-base py-6">
-                <Link to="/profile">
-                  Go to Profile
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
