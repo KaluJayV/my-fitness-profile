@@ -32,8 +32,8 @@ const Index = () => {
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-accent/10 flex items-center justify-center">
-                <Dumbbell className="h-8 w-8 text-accent" />
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <Dumbbell className="h-8 w-8 text-primary" />
               </div>
               <CardTitle>Generate Workouts</CardTitle>
               <CardDescription>
@@ -41,7 +41,7 @@ const Index = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button asChild className="w-full text-base py-6" variant="default">
+              <Button asChild className="w-full text-base py-6">
                 <Link to="/generator">
                   Generate Workouts
                 </Link>
@@ -51,8 +51,8 @@ const Index = () => {
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-secondary/10 flex items-center justify-center">
-                <Library className="h-8 w-8 text-secondary-foreground" />
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <Library className="h-8 w-8 text-primary" />
               </div>
               <CardTitle>Exercise Library</CardTitle>
               <CardDescription>
@@ -60,7 +60,7 @@ const Index = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button asChild className="w-full text-base py-6" variant="secondary">
+              <Button asChild className="w-full text-base py-6">
                 <Link to="/exercises">
                   Browse Exercises
                 </Link>
@@ -70,8 +70,8 @@ const Index = () => {
 
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center">
-                <CalendarDays className="h-8 w-8 text-muted-foreground" />
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                <CalendarDays className="h-8 w-8 text-primary" />
               </div>
               <CardTitle>Workout Calendar</CardTitle>
               <CardDescription>
@@ -79,7 +79,7 @@ const Index = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button asChild className="w-full text-base py-6" variant="outline">
+              <Button asChild className="w-full text-base py-6">
                 <Link to="/calendar">
                   View Calendar
                 </Link>
