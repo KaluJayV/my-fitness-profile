@@ -66,9 +66,13 @@ export const TodayWorkouts = () => {
     return workout.program?.name || 'Workout';
   };
 
-  const getExerciseNames = (workout: Workout) => {
+  const getWorkoutDetails = (workout: Workout) => {
     if (workout.json_plan?.exercises?.length) {
-      return workout.json_plan.exercises.slice(0, 3).map((ex: any) => ex.name);
+      return workout.json_plan.exercises.map((ex: any) => ({
+        name: ex.name,
+        sets: ex.sets || [],
+        targetMuscles: ex.target_muscles || []
+      }));
     }
     return [];
   };
@@ -134,13 +138,32 @@ export const TodayWorkouts = () => {
                       {workout.program?.name}
                     </Badge>
                   </div>
-                  {getExerciseNames(workout).length > 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      {getExerciseNames(workout).join(', ')}
-                      {workout.json_plan?.exercises?.length > 3 && 
-                        ` +${workout.json_plan.exercises.length - 3} more`
-                      }
-                    </p>
+                  {getWorkoutDetails(workout).length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {getWorkoutDetails(workout).map((exercise, index) => (
+                        <div key={index} className="bg-muted/30 rounded-md p-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">{exercise.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {exercise.sets.length > 0 
+                                ? `${exercise.sets.length} set${exercise.sets.length !== 1 ? 's' : ''}`
+                                : 'Sets TBD'
+                              }
+                            </span>
+                          </div>
+                          {exercise.sets.length > 0 && (
+                            <div className="mt-1 text-xs text-muted-foreground">
+                              {exercise.sets.map((set: any, setIndex: number) => (
+                                <span key={setIndex} className="mr-2">
+                                  {set.reps ? `${set.reps} reps` : 'Reps TBD'}
+                                  {set.weight && ` @ ${set.weight}kg`}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
                 <Button asChild size="sm" variant="outline">
