@@ -95,6 +95,30 @@ export const TodayWorkouts = () => {
     return `${setsCount} × ${repsDisplay}`;
   };
 
+  const getWorkoutTimeEstimate = (workout: Workout) => {
+    // Check for time estimate in various possible locations
+    const timeEstimate = workout.json_plan?.estimated_duration || 
+                        workout.json_plan?.duration || 
+                        workout.json_plan?.time_estimate;
+    
+    if (timeEstimate) {
+      return typeof timeEstimate === 'number' ? `${timeEstimate} min` : timeEstimate;
+    }
+    
+    // Calculate estimate based on exercises (rough estimate: 3-4 min per set + rest)
+    const exercises = getWorkoutDetails(workout);
+    if (exercises.length > 0) {
+      const totalSets = exercises.reduce((total, ex) => {
+        const sets = typeof ex.sets === 'number' ? ex.sets : 3;
+        return total + sets;
+      }, 0);
+      const estimatedMinutes = Math.round(totalSets * 3.5); // 3.5 min per set average
+      return `~${estimatedMinutes} min`;
+    }
+    
+    return "30-45 min";
+  };
+
   if (loading) {
     return (
       <Card>
@@ -147,42 +171,43 @@ export const TodayWorkouts = () => {
       <CardContent>
         <div className="space-y-3">
           {todayWorkouts.map((workout) => (
-            <div key={workout.id} className="border rounded-lg p-3 hover:bg-muted/50 transition-colors">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium">{formatWorkoutTitle(workout)}</h4>
-                    <Badge variant="secondary" className="text-xs">
-                      {workout.program?.name}
-                    </Badge>
-                  </div>
-                  {getWorkoutDetails(workout).length > 0 && (
-                    <div className="mt-3 space-y-2">
-                      {getWorkoutDetails(workout).map((exercise, index) => (
-                        <div key={index} className="bg-muted/30 rounded-md p-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">{exercise.name}</span>
-                            <Badge variant="outline" className="text-xs">
-                              {formatSetsReps(exercise.sets, exercise.reps)}
-                            </Badge>
-                          </div>
-                          {exercise.weight && (
-                            <div className="mt-1 text-xs text-muted-foreground">
-                              Target weight: {exercise.weight}kg
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <Button asChild size="sm" variant="outline">
-                  <Link to={`/workout/${workout.id}`}>
-                    <Play className="h-4 w-4 mr-1" />
-                    Start
-                  </Link>
-                </Button>
+            <div key={workout.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-2 mb-3">
+                <h4 className="font-medium">{formatWorkoutTitle(workout)}</h4>
+                <Badge variant="secondary" className="text-xs">
+                  {workout.program?.name}
+                </Badge>
+                <Badge variant="outline" className="text-xs ml-auto">
+                  {getWorkoutTimeEstimate(workout)}
+                </Badge>
               </div>
+              
+              {getWorkoutDetails(workout).length > 0 && (
+                <div className="space-y-2 mb-4">
+                  {getWorkoutDetails(workout).map((exercise, index) => (
+                    <div key={index} className="bg-muted/30 rounded-md p-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium">{exercise.name}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {formatSetsReps(exercise.sets, exercise.reps)}
+                        </Badge>
+                      </div>
+                      {exercise.weight && (
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          Target weight: {exercise.weight}kg
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              <Button asChild size="sm" className="w-full">
+                <Link to={`/workout/${workout.id}`}>
+                  <Play className="h-4 w-4 mr-2" />
+                  Start Workout
+                </Link>
+              </Button>
             </div>
           ))}
         </div>
