@@ -52,12 +52,9 @@ const AnalyticsDashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch progress data from v_progress view
+      // Fetch progress data using the secure function
       const { data: progress, error: progressError } = await supabase
-        .from('v_progress')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('week', { ascending: true });
+        .rpc('get_user_progress');
 
       if (progressError) throw progressError;
 

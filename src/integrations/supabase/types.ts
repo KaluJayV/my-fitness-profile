@@ -97,13 +97,6 @@ export type Database = {
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "programs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "v_progress"
-            referencedColumns: ["user_id"]
-          },
         ]
       }
       ratings: {
@@ -148,13 +141,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ratings_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "v_progress"
-            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -293,16 +279,7 @@ export type Database = {
       }
     }
     Views: {
-      v_progress: {
-        Row: {
-          avg_reps: number | null
-          avg_weight: number | null
-          exercise: string | null
-          user_id: string | null
-          week: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       binary_quantize: {
@@ -354,6 +331,16 @@ export type Database = {
           exercise_name: string
           last_performed: string
           total_sets: number
+        }[]
+      }
+      get_user_progress: {
+        Args: { p_user_id?: string }
+        Returns: {
+          avg_reps: number
+          avg_weight: number
+          exercise: string
+          user_id: string
+          week: string
         }[]
       }
       halfvec_avg: {
