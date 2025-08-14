@@ -5,22 +5,19 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { TodayWorkouts } from "@/components/TodayWorkouts";
 import { AppHeader } from "@/components/AppHeader";
-
 const Index = () => {
-  const { user } = useAuth();
-
-  return (
-    <div className="min-h-screen bg-background">
+  const {
+    user
+  } = useAuth();
+  return <div className="min-h-screen bg-background">
       <AppHeader />
       <div className="container mx-auto p-4 lg:p-6">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4">Welcome to G(ai)ns</h1>
           <p className="text-xl text-muted-foreground">Your AI-powered fitness companion</p>
-          {user && (
-            <p className="text-sm text-muted-foreground mt-2">
+          {user && <p className="text-sm text-muted-foreground mt-2">
               Ready to crush your goals, {user.email.split('@')[0]}?
-            </p>
-          )}
+            </p>}
         </div>
 
         {/* Today's Workouts Section */}
@@ -36,9 +33,7 @@ const Index = () => {
                 <Dumbbell className="h-8 w-8 text-primary" />
               </div>
               <CardTitle>Generate Workouts</CardTitle>
-              <CardDescription>
-                Get AI-generated workout plans tailored to your profile and preferences
-              </CardDescription>
+              
             </CardHeader>
             <CardContent className="h-24 flex items-center">
               <Button asChild className="w-full text-base py-6">
@@ -55,9 +50,7 @@ const Index = () => {
                 <Library className="h-8 w-8 text-primary" />
               </div>
               <CardTitle>Exercise Library</CardTitle>
-              <CardDescription>
-                Browse and rate exercises with detailed demonstrations and muscle targeting
-              </CardDescription>
+              
             </CardHeader>
             <CardContent className="h-24 flex items-center">
               <Button asChild className="w-full text-base py-6">
@@ -74,9 +67,7 @@ const Index = () => {
                 <CalendarDays className="h-8 w-8 text-primary" />
               </div>
               <CardTitle>Workout Calendar</CardTitle>
-              <CardDescription>
-                View your scheduled workouts in a calendar format and track your fitness journey
-              </CardDescription>
+              
             </CardHeader>
             <CardContent className="h-24 flex items-center">
               <Button asChild className="w-full text-base py-6">
@@ -88,8 +79,6 @@ const Index = () => {
           </Card>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
