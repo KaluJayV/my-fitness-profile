@@ -21,8 +21,10 @@ const Index = () => {
         </div>
 
         {/* Today's Workouts Section */}
-        <div className="mb-8">
-          <TodayWorkouts />
+        <div className="mb-8 flex justify-center">
+          <div className="w-full max-w-2xl">
+            <TodayWorkouts />
+          </div>
         </div>
         
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

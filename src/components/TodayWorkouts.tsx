@@ -68,19 +68,27 @@ export const TodayWorkouts = () => {
 
   const getWorkoutDetails = (workout: Workout) => {
     if (workout.json_plan?.exercises?.length) {
-      return workout.json_plan.exercises.map((ex: any) => ({
-        name: ex.name,
-        sets: ex.sets || ex.planned_sets || 3, // fallback to 3 if not specified
-        reps: ex.reps || ex.planned_reps || ex.rep_range || "8-12", // fallback rep range
-        weight: ex.weight || ex.planned_weight,
-        targetMuscles: ex.target_muscles || ex.primary_muscles || []
-      }));
+      return workout.json_plan.exercises.map((ex: any) => {
+        // Handle different possible data structures
+        const exerciseName = ex.name || ex.exercise_name || ex.exercise?.name || 'Unknown Exercise';
+        const sets = ex.sets || ex.planned_sets || ex.target_sets || 3;
+        const reps = ex.reps || ex.planned_reps || ex.target_reps || ex.rep_range || "8-12";
+        const weight = ex.weight || ex.planned_weight || ex.target_weight;
+        
+        return {
+          name: exerciseName,
+          sets: sets,
+          reps: reps,
+          weight: weight,
+          targetMuscles: ex.target_muscles || ex.primary_muscles || []
+        };
+      });
     }
     return [];
   };
 
   const formatSetsReps = (sets: any, reps: any) => {
-    const setsCount = typeof sets === 'number' ? sets : (sets?.length || 3);
+    const setsCount = typeof sets === 'number' ? sets : (Array.isArray(sets) ? sets.length : 3);
     const repsDisplay = typeof reps === 'string' ? reps : 
                        typeof reps === 'number' ? reps.toString() :
                        Array.isArray(reps) ? `${Math.min(...reps)}-${Math.max(...reps)}` : "8-12";
