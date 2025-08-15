@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Program {
   id: string;
@@ -24,6 +25,7 @@ export const TodayWorkouts = () => {
   const { user } = useAuth();
   const [todayWorkouts, setTodayWorkouts] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(true);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchTodayWorkouts = async () => {
@@ -162,18 +164,18 @@ export const TodayWorkouts = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
+      <CardHeader className={isMobile ? "p-3" : ""}>
+        <CardTitle className={`flex items-center gap-2 ${isMobile ? "text-lg" : ""}`}>
+          <Calendar className={isMobile ? "h-4 w-4" : "h-5 w-5"} />
           Today's Workouts
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
+      <CardContent className={isMobile ? "p-3 pt-0" : ""}>
+        <div className={isMobile ? "space-y-2" : "space-y-3"}>
           {todayWorkouts.map((workout) => (
-            <div key={workout.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-              <div className="flex items-center gap-2 mb-3">
-                <h4 className="font-medium">{formatWorkoutTitle(workout)}</h4>
+            <div key={workout.id} className={`border rounded-lg ${isMobile ? "p-3" : "p-4"} hover:bg-muted/50 transition-colors`}>
+              <div className={`flex items-center gap-2 ${isMobile ? "mb-2" : "mb-3"}`}>
+                <h4 className={`font-medium ${isMobile ? "text-sm" : ""}`}>{formatWorkoutTitle(workout)}</h4>
                 <Badge variant="secondary" className="text-xs">
                   {workout.program?.name}
                 </Badge>
@@ -183,17 +185,17 @@ export const TodayWorkouts = () => {
               </div>
               
               {getWorkoutDetails(workout).length > 0 && (
-                <div className="space-y-2 mb-4">
+                <div className={`${isMobile ? "space-y-1 mb-3" : "space-y-2 mb-4"}`}>
                   {getWorkoutDetails(workout).map((exercise, index) => (
-                    <div key={index} className="bg-muted/30 rounded-md p-2">
+                    <div key={index} className={`bg-muted/30 rounded-md ${isMobile ? "p-1.5" : "p-2"}`}>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{exercise.name}</span>
+                        <span className={`font-medium ${isMobile ? "text-xs" : "text-sm"}`}>{exercise.name}</span>
                         <Badge variant="outline" className="text-xs">
                           {formatSetsReps(exercise.sets, exercise.reps)}
                         </Badge>
                       </div>
                       {exercise.weight && (
-                        <div className="mt-1 text-xs text-muted-foreground">
+                        <div className={`mt-1 text-muted-foreground ${isMobile ? "text-xs" : "text-xs"}`}>
                           Target weight: {exercise.weight}kg
                         </div>
                       )}
@@ -202,7 +204,7 @@ export const TodayWorkouts = () => {
                 </div>
               )}
               
-              <Button asChild size="sm" className="w-full">
+              <Button asChild size={isMobile ? "sm" : "sm"} className="w-full">
                 <Link to={`/workout/${workout.id}`}>
                   <Play className="h-4 w-4 mr-2" />
                   Start Workout
