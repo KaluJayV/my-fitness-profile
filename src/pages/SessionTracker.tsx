@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ExerciseSetTable } from "@/components/ExerciseSetTable";
 import { WorkoutVoiceInput } from "@/components/WorkoutVoiceInput";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Set {
   id: string;
@@ -49,6 +50,7 @@ const SessionTracker = () => {
   const [saving, setSaving] = useState(false);
   const [sessionStartTime] = useState(new Date());
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (workoutId) {
@@ -323,33 +325,38 @@ const SessionTracker = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className={`min-h-screen bg-background ${isMobile ? 'pb-20' : 'pb-24'}`}>
       {/* Header */}
       <div className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b z-40">
-        <div className="max-w-2xl mx-auto p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        <div className={`mx-auto ${isMobile ? 'px-3 py-3' : 'max-w-2xl p-4'}`}>
+          <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'} justify-between`}>
+            <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'}`}>
               <Button
                 variant="ghost"
-                size="sm"
+                size={isMobile ? "sm" : "sm"}
                 onClick={() => navigate('/schedule')}
+                className={isMobile ? "h-8 w-8 p-0" : ""}
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
               <div>
-                <h1 className="text-xl font-bold">Workout Session</h1>
-                <p className="text-sm text-muted-foreground">
+                <h1 className={`font-bold ${isMobile ? 'text-lg' : 'text-xl'}`}>
+                  {isMobile ? 'Session' : 'Workout Session'}
+                </h1>
+                <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>
                   {workout.program?.name}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <WorkoutVoiceInput 
-                exercises={exerciseList}
-                onDataReceived={handleVoiceData}
-              />
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Timer className="h-4 w-4" />
+            <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'}`}>
+              {!isMobile && (
+                <WorkoutVoiceInput 
+                  exercises={exerciseList}
+                  onDataReceived={handleVoiceData}
+                />
+              )}
+              <div className={`flex items-center gap-1 text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                <Timer className={isMobile ? "h-3 w-3" : "h-4 w-4"} />
                 {getSessionDuration()}
               </div>
             </div>
@@ -358,19 +365,21 @@ const SessionTracker = () => {
       </div>
 
       {/* Exercises */}
-      <div className="max-w-2xl mx-auto p-4 space-y-6">
+      <div className={`mx-auto ${isMobile ? 'px-3 py-4 space-y-4' : 'max-w-2xl p-4 space-y-6'}`}>
         {exercises.map((exercise, exerciseIndex) => (
-          <Card key={exercise.id}>
-            <CardHeader className="pb-3">
+          <Card key={exercise.id} className={isMobile ? 'shadow-sm' : ''}>
+            <CardHeader className={isMobile ? 'pb-2 px-4 pt-4' : 'pb-3'}>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{exercise.name}</CardTitle>
-                <Badge variant="outline">
+                <CardTitle className={`${isMobile ? 'text-base' : 'text-lg'}`}>
+                  {exercise.name}
+                </CardTitle>
+                <Badge variant="outline" className={isMobile ? 'text-xs' : ''}>
                   {exercise.sets.length} set{exercise.sets.length !== 1 ? 's' : ''}
                 </Badge>
               </div>
               {exercise.planData && (
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div className="flex flex-wrap gap-4">
+                <div className={`space-y-1 text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                  <div className={`flex flex-wrap ${isMobile ? 'gap-2' : 'gap-4'}`}>
                     <span><strong>Sets:</strong> {exercise.planData.sets}</span>
                     <span><strong>Reps:</strong> {exercise.planData.reps}</span>
                     <span><strong>Rest:</strong> {exercise.planData.rest}</span>
@@ -378,23 +387,28 @@ const SessionTracker = () => {
                   {exercise.planData.suggested_weight && (
                     <div><strong>Weight:</strong> {exercise.planData.suggested_weight}</div>
                   )}
-                  {exercise.planData.notes && (
+                  {exercise.planData.notes && !isMobile && (
                     <div><strong>Notes:</strong> {exercise.planData.notes}</div>
                   )}
                   {exercise.planData.primary_muscles.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       <strong>Muscles:</strong>
-                      {exercise.planData.primary_muscles.map((muscle, index) => (
+                      {exercise.planData.primary_muscles.slice(0, isMobile ? 2 : 4).map((muscle, index) => (
                         <Badge key={index} variant="secondary" className="text-xs">
                           {muscle}
                         </Badge>
                       ))}
+                      {isMobile && exercise.planData.primary_muscles.length > 2 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{exercise.planData.primary_muscles.length - 2}
+                        </Badge>
+                      )}
                     </div>
                   )}
                 </div>
               )}
             </CardHeader>
-            <CardContent>
+            <CardContent className={isMobile ? 'px-4 pb-4' : ''}>
               <ExerciseSetTable
                 sets={exercise.sets}
                 onUpdateSet={(setIndex, field, value) => updateSet(exerciseIndex, setIndex, field, value)}
@@ -402,10 +416,10 @@ const SessionTracker = () => {
               />
               <Button
                 variant="outline"
-                className="w-full mt-3"
+                className={`w-full ${isMobile ? 'mt-2 h-9 text-sm' : 'mt-3'}`}
                 onClick={() => addSet(exerciseIndex)}
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} mr-2`} />
                 Add Set
               </Button>
             </CardContent>
@@ -413,19 +427,29 @@ const SessionTracker = () => {
         ))}
       </div>
 
+      {/* Voice Input for Mobile */}
+      {isMobile && (
+        <div className="fixed bottom-16 right-4 z-40">
+          <WorkoutVoiceInput 
+            exercises={exerciseList}
+            onDataReceived={handleVoiceData}
+          />
+        </div>
+      )}
+
       {/* Floating Finish Button */}
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+      <div className={`fixed ${isMobile ? 'bottom-4 left-4 right-4' : 'bottom-6 left-1/2 transform -translate-x-1/2'} z-50`}>
         <Button
-          size="lg"
+          size={isMobile ? "default" : "lg"}
           onClick={finishSession}
           disabled={saving || exercises.every(ex => ex.sets.length === 0)}
-          className="px-8 py-3 shadow-lg"
+          className={`${isMobile ? 'w-full h-12 text-base' : 'px-8 py-3'} shadow-lg`}
         >
           {saving ? (
             "Saving..."
           ) : (
             <>
-              <Check className="h-5 w-5 mr-2" />
+              <Check className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} mr-2`} />
               Finish Workout
             </>
           )}
