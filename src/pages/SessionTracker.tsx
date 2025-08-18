@@ -88,7 +88,7 @@ const SessionTracker = () => {
         description: "Failed to load workout",
         variant: "destructive"
       });
-      navigate('/schedule');
+      navigate('/');
     } finally {
       setLoading(false);
     }
@@ -316,8 +316,8 @@ const SessionTracker = () => {
       <div className="min-h-screen bg-background p-4 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">Workout not found</h2>
-          <Button onClick={() => navigate('/schedule')}>
-            Back to Schedule
+          <Button onClick={() => navigate('/')}>
+            Back to Home
           </Button>
         </div>
       </div>
@@ -334,7 +334,7 @@ const SessionTracker = () => {
               <Button
                 variant="ghost"
                 size={isMobile ? "sm" : "sm"}
-                onClick={() => navigate('/schedule')}
+                onClick={() => navigate('/')}
                 className={isMobile ? "h-8 w-8 p-0" : ""}
               >
                 <ArrowLeft className="h-4 w-4" />
