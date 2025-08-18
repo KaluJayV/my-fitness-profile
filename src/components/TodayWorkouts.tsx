@@ -63,7 +63,7 @@ export const TodayWorkouts = () => {
   const formatWorkoutTitle = (workout: Workout) => {
     if (workout.json_plan?.exercises?.length) {
       const exerciseCount = workout.json_plan.exercises.length;
-      return exerciseCount === 1 ? "1 Ex" : `${exerciseCount} Ex`;
+      return `${exerciseCount} Exercise${exerciseCount !== 1 ? 's' : ''}`;
     }
     return workout.program?.name || 'Workout';
   };
@@ -73,13 +73,12 @@ export const TodayWorkouts = () => {
       return workout.json_plan.exercises.map((ex: any) => {
         // Handle different possible data structures
         const exerciseName = ex.name || ex.exercise_name || ex.exercise?.name || 'Unknown Exercise';
-        const shortName = exerciseName.length > 15 ? exerciseName.substring(0, 12) + "..." : exerciseName;
         const sets = ex.sets || ex.planned_sets || ex.target_sets || 3;
         const reps = ex.reps || ex.planned_reps || ex.target_reps || ex.rep_range || "8-12";
         const weight = ex.weight || ex.planned_weight || ex.target_weight;
         
         return {
-          name: shortName,
+          name: exerciseName,
           sets: sets,
           reps: reps,
           weight: weight,
@@ -95,7 +94,7 @@ export const TodayWorkouts = () => {
     const repsDisplay = typeof reps === 'string' ? reps : 
                        typeof reps === 'number' ? reps.toString() :
                        Array.isArray(reps) ? `${Math.min(...reps)}-${Math.max(...reps)}` : "8-12";
-    return `${setsCount}×${repsDisplay}`;
+    return `${setsCount} × ${repsDisplay}`;
   };
 
   const getWorkoutTimeEstimate = (workout: Workout) => {
@@ -105,7 +104,7 @@ export const TodayWorkouts = () => {
                         workout.json_plan?.time_estimate;
     
     if (timeEstimate) {
-      return typeof timeEstimate === 'number' ? `${timeEstimate}min` : timeEstimate;
+      return typeof timeEstimate === 'number' ? `${timeEstimate} min` : timeEstimate;
     }
     
     // Calculate estimate based on exercises (rough estimate: 3-4 min per set + rest)
@@ -116,10 +115,10 @@ export const TodayWorkouts = () => {
         return total + sets;
       }, 0);
       const estimatedMinutes = Math.round(totalSets * 3.5); // 3.5 min per set average
-      return `~${estimatedMinutes}min`;
+      return `~${estimatedMinutes} min`;
     }
     
-    return "30-45min";
+    return "30-45 min";
   };
 
   if (loading) {
@@ -197,7 +196,7 @@ export const TodayWorkouts = () => {
                       </div>
                       {exercise.weight && (
                         <div className={`mt-1 text-muted-foreground ${isMobile ? "text-xs" : "text-xs"}`}>
-                          {exercise.weight}kg
+                          Target weight: {exercise.weight}kg
                         </div>
                       )}
                     </div>
