@@ -4,7 +4,6 @@ import { Dumbbell, Library, CalendarDays } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { TodayWorkouts } from "@/components/TodayWorkouts";
-import { QuickAnalytics } from "@/components/QuickAnalytics";
 import { AppHeader } from "@/components/AppHeader";
 const Index = () => {
   const {
@@ -21,11 +20,10 @@ const Index = () => {
             </p>}
         </div>
 
-        {/* Today's Workouts and Analytics Section */}
+        {/* Today's Workouts Section */}
         <div className="mb-8 flex justify-center">
-          <div className="w-full max-w-2xl space-y-6">
+          <div className="w-full max-w-2xl">
             <TodayWorkouts />
-            <QuickAnalytics />
           </div>
         </div>
         
