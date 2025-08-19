@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart3, TrendingUp, Calendar, Trophy, RefreshCw } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
+import { BarChart3, TrendingUp, Calendar, Trophy, RefreshCw, Dumbbell, Target } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 import { AppHeader } from "@/components/AppHeader";
+import { CoreLiftDashboard } from "@/components/CoreLiftDashboard";
+import { WorkoutFrequencyDashboard } from "@/components/WorkoutFrequencyDashboard";
 
 interface ProgressData {
   week: string;
@@ -16,9 +18,14 @@ interface ProgressData {
   avg_weight: number;
 }
 
-interface MuscleGroupData {
-  muscle: string;
-  avgScore: number;
+interface CoreLiftProgression {
+  core_lift_type: string;
+  exercise_name: string;
+  workout_date: string;
+  best_estimated_1rm: number;
+  total_volume: number;
+  avg_weight: number;
+  total_sets: number;
 }
 
 interface StatsData {
@@ -30,7 +37,7 @@ interface StatsData {
 
 const AnalyticsDashboard = () => {
   const [progressData, setProgressData] = useState<ProgressData[]>([]);
-  const [muscleData, setMuscleData] = useState<MuscleGroupData[]>([]);
+  const [coreLiftProgression, setCoreLiftProgression] = useState<CoreLiftProgression[]>([]);
   const [stats, setStats] = useState<StatsData>({
     totalWorkouts: 0,
     totalSets: 0,
@@ -52,44 +59,21 @@ const AnalyticsDashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch progress data using the secure function
+      // Fetch core lift progression data
+      const { data: coreLifts, error: coreLiftsError } = await supabase
+        .rpc('get_core_lift_progression');
+
+      if (coreLiftsError) throw coreLiftsError;
+
+      setCoreLiftProgression(coreLifts || []);
+
+      // Fetch general progress data
       const { data: progress, error: progressError } = await supabase
         .rpc('get_user_progress');
 
       if (progressError) throw progressError;
 
       setProgressData(progress || []);
-
-      // Fetch muscle group ratings
-      const { data: ratings, error: ratingsError } = await supabase
-        .from('ratings')
-        .select(`
-          pump_score,
-          exercises!inner(primary_muscles)
-        `)
-        .eq('user_id', user.id)
-        .not('pump_score', 'is', null);
-
-      if (ratingsError) throw ratingsError;
-
-      // Process muscle group data
-      const muscleScores = {};
-      ratings?.forEach((rating) => {
-        const muscles = rating.exercises?.primary_muscles || [];
-        muscles.forEach((muscle: string) => {
-          if (!muscleScores[muscle]) {
-            muscleScores[muscle] = [];
-          }
-          muscleScores[muscle].push(rating.pump_score);
-        });
-      });
-
-      const muscleGroupData = Object.entries(muscleScores).map(([muscle, scores]: [string, number[]]) => ({
-        muscle: muscle.charAt(0).toUpperCase() + muscle.slice(1),
-        avgScore: scores.reduce((a, b) => a + b, 0) / scores.length
-      }));
-
-      setMuscleData(muscleGroupData);
 
       // Calculate stats
       await calculateStats(user.id);
@@ -153,22 +137,32 @@ const AnalyticsDashboard = () => {
     }
   };
 
-  // Group progress data by exercise for line chart
-  const chartData = () => {
-    const exerciseWeeks = {};
-    progressData.forEach(item => {
-      const weekKey = new Date(item.week).toLocaleDateString();
-      if (!exerciseWeeks[weekKey]) {
-        exerciseWeeks[weekKey] = { week: weekKey };
+  // Group core lift progression data for chart
+  const coreLiftsChartData = () => {
+    const liftTypes = [...new Set(coreLiftProgression.map(item => item.core_lift_type))];
+    const dataByDate = {};
+    
+    coreLiftProgression.forEach(item => {
+      const dateKey = new Date(item.workout_date).toLocaleDateString();
+      if (!dataByDate[dateKey]) {
+        dataByDate[dateKey] = { date: dateKey };
       }
-      exerciseWeeks[weekKey][item.exercise] = item.avg_weight;
+      dataByDate[dateKey][item.core_lift_type] = item.best_estimated_1rm;
     });
-    return Object.values(exerciseWeeks);
+    
+    return Object.values(dataByDate).sort((a: any, b: any) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
   };
 
-  // Get unique exercises for line chart colors
-  const uniqueExercises = [...new Set(progressData.map(item => item.exercise))];
-  const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1', '#d084d0'];
+  // Get unique core lifts for chart colors
+  const uniqueCoreLifts = [...new Set(coreLiftProgression.map(item => item.core_lift_type))];
+  const liftColors = {
+    squat: '#8884d8',
+    bench: '#82ca9d', 
+    deadlift: '#ffc658',
+    overhead_press: '#ff7300'
+  };
 
   if (loading) {
     return (
@@ -201,8 +195,8 @@ const AnalyticsDashboard = () => {
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold mb-2">Your Progress</h2>
-              <p className="text-muted-foreground">Track your fitness progress and achievements</p>
+              <h2 className="text-2xl font-bold mb-2">Workout & Core Lift Analytics</h2>
+              <p className="text-muted-foreground">Track your workout consistency and strength progression</p>
             </div>
             <Button 
             onClick={() => {
@@ -264,75 +258,60 @@ const AnalyticsDashboard = () => {
           </Card>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3 mb-8">
-          {/* Progress Line Chart */}
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Exercise Progress Over Time</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {progressData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={chartData()}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="week" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    {uniqueExercises.slice(0, 6).map((exercise, index) => (
-                      <Line
-                        key={exercise}
-                        type="monotone"
-                        dataKey={exercise}
-                        stroke={colors[index]}
-                        strokeWidth={2}
-                        dot={{ r: 4 }}
-                      />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No progress data yet</p>
-                  <p className="text-sm">Complete workouts to see your progress</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Muscle Group Radar Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Muscle Group Ratings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {muscleData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <RadarChart data={muscleData}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="muscle" />
-                    <PolarRadiusAxis domain={[0, 5]} />
-                    <Radar
-                      name="Avg Rating"
-                      dataKey="avgScore"
-                      stroke="#8884d8"
-                      fill="#8884d8"
-                      fillOpacity={0.3}
-                    />
-                    <Tooltip />
-                  </RadarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Trophy className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No ratings yet</p>
-                  <p className="text-sm">Rate exercises to see muscle analysis</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        {/* Core Lift and Workout Frequency Dashboard */}
+        <div className="grid gap-6 lg:grid-cols-2 mb-8">
+          <CoreLiftDashboard />
+          <WorkoutFrequencyDashboard />
         </div>
+
+        {/* Core Lift Progression Chart */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Dumbbell className="h-5 w-5" />
+              Core Lift 1RM Progression
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {coreLiftProgression.length > 0 ? (
+              <ResponsiveContainer width="100%" height={400}>
+                <LineChart data={coreLiftsChartData()}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip 
+                    formatter={(value: any, name: string) => [
+                      `${Math.round(value)}kg`, 
+                      name.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+                    ]}
+                  />
+                  <Legend 
+                    formatter={(value: string) => 
+                      value.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+                    }
+                  />
+                  {uniqueCoreLifts.map((liftType) => (
+                    <Line
+                      key={liftType}
+                      type="monotone"
+                      dataKey={liftType}
+                      stroke={liftColors[liftType as keyof typeof liftColors]}
+                      strokeWidth={3}
+                      dot={{ r: 5 }}
+                      connectNulls={false}
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <Dumbbell className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No core lift data yet</p>
+                <p className="text-sm">Perform squats, bench press, deadlifts, or overhead press to see progression</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* AI Analysis Card */}
         <Card>

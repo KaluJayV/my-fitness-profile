@@ -6,6 +6,8 @@ import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
+import { CoreLiftDashboard } from "./CoreLiftDashboard";
+import { WorkoutFrequencyDashboard } from "./WorkoutFrequencyDashboard";
 
 interface StatsData {
   totalWorkouts: number;
@@ -97,74 +99,83 @@ export const QuickAnalytics = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            Quick Progress
-          </div>
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/analytics">
-              View Full Analytics
-              <ArrowRight className="h-4 w-4 ml-1" />
-            </Link>
-          </Button>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Quick Stats Grid */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 mx-auto mb-2">
-              <Calendar className="h-4 w-4 text-primary" />
+    <div className="space-y-4">
+      {/* Header Card with Quick Link */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Quick Analytics
             </div>
-            <div className="text-2xl font-bold">{stats.totalWorkouts}</div>
-            <p className="text-xs text-muted-foreground">Workouts</p>
-          </div>
-          
-          <div className="text-center">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 mx-auto mb-2">
-              <Trophy className="h-4 w-4 text-primary" />
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/analytics">
+                View Full Analytics
+                <ArrowRight className="h-4 w-4 ml-1" />
+              </Link>
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Quick Stats Grid */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 mx-auto mb-2">
+                <Calendar className="h-4 w-4 text-primary" />
+              </div>
+              <div className="text-2xl font-bold">{stats.totalWorkouts}</div>
+              <p className="text-xs text-muted-foreground">Workouts</p>
             </div>
-            <div className="text-2xl font-bold">{stats.totalSets}</div>
-            <p className="text-xs text-muted-foreground">Sets</p>
-          </div>
-          
-          <div className="text-center">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 mx-auto mb-2">
-              <TrendingUp className="h-4 w-4 text-primary" />
+            
+            <div className="text-center">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 mx-auto mb-2">
+                <Trophy className="h-4 w-4 text-primary" />
+              </div>
+              <div className="text-2xl font-bold">{stats.totalSets}</div>
+              <p className="text-xs text-muted-foreground">Sets</p>
             </div>
-            <div className="text-2xl font-bold">{stats.avgWeightProgress}kg</div>
-            <p className="text-xs text-muted-foreground">Avg Weight</p>
+            
+            <div className="text-center">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 mx-auto mb-2">
+                <TrendingUp className="h-4 w-4 text-primary" />
+              </div>
+              <div className="text-2xl font-bold">{stats.avgWeightProgress}kg</div>
+              <p className="text-xs text-muted-foreground">Avg Weight</p>
+            </div>
           </div>
-        </div>
 
-        {/* Mini Progress Chart */}
-        {stats.recentProgress.length > 0 ? (
-          <div className="pt-2">
-            <h4 className="text-sm font-medium mb-2">Recent Progress</h4>
-            <ResponsiveContainer width="100%" height={80}>
-              <LineChart data={stats.recentProgress}>
-                <XAxis dataKey="week" hide />
-                <YAxis hide />
-                <Line
-                  type="monotone"
-                  dataKey="avgWeight"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth={2}
-                  dot={{ r: 3 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <div className="text-center py-4 text-muted-foreground">
-            <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">Complete workouts to see progress</p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          {/* Mini Progress Chart */}
+          {stats.recentProgress.length > 0 ? (
+            <div className="pt-2">
+              <h4 className="text-sm font-medium mb-2">Recent Progress</h4>
+              <ResponsiveContainer width="100%" height={80}>
+                <LineChart data={stats.recentProgress}>
+                  <XAxis dataKey="week" hide />
+                  <YAxis hide />
+                  <Line
+                    type="monotone"
+                    dataKey="avgWeight"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="text-center py-4 text-muted-foreground">
+              <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Complete workouts to see progress</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Core Lift Dashboard */}
+      <CoreLiftDashboard />
+
+      {/* Workout Frequency Dashboard */}
+      <WorkoutFrequencyDashboard />
+    </div>
   );
 };
