@@ -103,49 +103,48 @@
   
   /* CRED-inspired typography - optimized for crisp rendering */
   .typography-hero {
-    @apply font-display text-5xl md:text-6xl lg:text-7xl font-medium leading-[0.9] tracking-[-0.02em];
+    @apply font-display text-5xl md:text-6xl lg:text-7xl font-medium leading-none tracking-tight;
     font-feature-settings: "ss01" 1, "kern" 1;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
   
   .typography-headline {
-    @apply font-display text-3xl md:text-4xl lg:text-5xl font-medium leading-tight tracking-[-0.015em];
+    @apply font-display text-3xl md:text-4xl lg:text-5xl font-medium leading-tight tracking-tight;
     font-feature-settings: "kern" 1;
     text-rendering: optimizeLegibility;
   }
   
   .typography-subtitle {
-    @apply font-sans text-base md:text-lg leading-relaxed text-muted-foreground font-normal tracking-[-0.005em];
+    @apply font-sans text-base md:text-lg leading-relaxed text-muted-foreground font-normal;
     text-rendering: optimizeLegibility;
   }
   
   .typography-body {
-    @apply font-sans text-sm leading-relaxed tracking-normal;
+    @apply font-sans text-sm leading-relaxed;
     text-rendering: optimizeLegibility;
   }
   
   /* Premium components with better contrast */
   .card-premium {
-    @apply bg-card/80 border border-border/30 backdrop-blur-xl shadow-lg;
-    backdrop-filter: blur(20px);
+    @apply bg-card border border-border backdrop-blur-sm shadow-lg;
   }
   
   .button-premium {
-    @apply bg-primary text-primary-foreground font-medium tracking-wide border border-border/20;
+    @apply bg-primary text-primary-foreground font-medium border border-border;
     @apply shadow-sm transition-all duration-200 hover:shadow-md hover:bg-primary/90;
     text-rendering: optimizeLegibility;
   }
   
   /* Animations */
   .animate-fade-up {
-    animation: fadeUp 0.6s ease-out forwards;
+    animation: fadeUp 0.5s ease-out forwards;
   }
   
   @keyframes fadeUp {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(16px);
     }
     to {
       opacity: 1;
