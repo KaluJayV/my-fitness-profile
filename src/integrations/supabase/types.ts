@@ -136,6 +136,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "ratings_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_core_lifts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "ratings_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -240,6 +247,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_core_lifts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "workout_exercises_workout_id_fkey"
             columns: ["workout_id"]
             isOneToOne: false
@@ -279,12 +293,51 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_core_lifts: {
+        Row: {
+          core_lift_type: string | null
+          id: number | null
+          name: string | null
+        }
+        Insert: {
+          core_lift_type?: never
+          id?: number | null
+          name?: string | null
+        }
+        Update: {
+          core_lift_type?: never
+          id?: number | null
+          name?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       binary_quantize: {
         Args: { "": string } | { "": unknown }
         Returns: unknown
+      }
+      get_core_lift_progression: {
+        Args: { p_user_id?: string }
+        Returns: {
+          avg_weight: number
+          best_estimated_1rm: number
+          core_lift_type: string
+          exercise_name: string
+          total_sets: number
+          total_volume: number
+          workout_date: string
+        }[]
+      }
+      get_current_core_lift_maxes: {
+        Args: { p_user_id?: string }
+        Returns: {
+          core_lift_type: string
+          current_1rm: number
+          exercise_name: string
+          improvement_30d: number
+          last_performed: string
+        }[]
       }
       get_exercise_1rm_data: {
         Args: { p_exercise_id: number; p_user_id: string }
@@ -341,6 +394,16 @@ export type Database = {
           exercise: string
           user_id: string
           week: string
+        }[]
+      }
+      get_workout_frequency_stats: {
+        Args: { p_user_id?: string }
+        Returns: {
+          avg_workouts_per_week: number
+          current_streak: number
+          last_workout_date: string
+          longest_streak: number
+          total_workouts: number
         }[]
       }
       halfvec_avg: {
