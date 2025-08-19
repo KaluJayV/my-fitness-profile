@@ -4,60 +4,35 @@
 
 @layer base {
   :root {
-    /* CRED-inspired refined dark theme with better contrast */
-    --background: 12 12 13;                    /* Deeper charcoal */
-    --foreground: 252 252 252;                 /* Crisp white */
-    
-    --card: 18 18 19;                          /* Subtle card background */
-    --card-foreground: 248 248 248;            /* High contrast card text */
-    
-    --popover: 18 18 19;                       /* Popover background */
-    --popover-foreground: 248 248 248;         /* Popover text */
-    
-    --primary: 248 248 248;                    /* Crisp white primary */
-    --primary-foreground: 12 12 13;            /* Dark primary text */
-    
-    --secondary: 28 28 30;                     /* Refined secondary */
-    --secondary-foreground: 220 220 220;       /* Secondary text */
-    
-    --muted: 24 24 26;                         /* Muted background */
-    --muted-foreground: 156 156 156;           /* Balanced muted text */
-    
-    --accent: 32 32 35;                        /* Subtle accent */
-    --accent-foreground: 240 240 240;          /* Accent text */
-    
-    --destructive: 196 48 43;                  /* Refined red */
-    --destructive-foreground: 252 252 252;     /* High contrast */
-    
-    --border: 32 32 35;                        /* Subtle borders */
-    --input: 28 28 30;                         /* Input background */
-    --ring: 156 156 156;                       /* Focus ring */
-    
-    --radius: 0.5rem;                          /* Smaller radius for elegance */
-    
-    /* Sophisticated status colors with better contrast */
-    --success: 34 139 34;                      /* Forest green */
+    --background: 12 12 13;
+    --foreground: 252 252 252;
+    --card: 18 18 19;
+    --card-foreground: 248 248 248;
+    --popover: 18 18 19;
+    --popover-foreground: 248 248 248;
+    --primary: 248 248 248;
+    --primary-foreground: 12 12 13;
+    --secondary: 28 28 30;
+    --secondary-foreground: 220 220 220;
+    --muted: 24 24 26;
+    --muted-foreground: 156 156 156;
+    --accent: 32 32 35;
+    --accent-foreground: 240 240 240;
+    --destructive: 196 48 43;
+    --destructive-foreground: 252 252 252;
+    --border: 32 32 35;
+    --input: 28 28 30;
+    --ring: 156 156 156;
+    --radius: 0.5rem;
+    --success: 34 139 34;
     --success-foreground: 252 252 252;
-    --warning: 184 134 11;                     /* Refined amber */
+    --warning: 184 134 11;
     --warning-foreground: 252 252 252;
-    --info: 59 130 246;                        /* Clean blue */
+    --info: 59 130 246;
     --info-foreground: 252 252 252;
-    
-    /* Subtle gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(12 12 13), hsl(18 18 19));
-    --gradient-accent: linear-gradient(135deg, hsl(28 28 30), hsl(32 32 35));
-    
-    /* Clean shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0 0 / 0.1);
-    
-    /* Smooth transitions */
-    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    /* Consistent with root theme */
     --background: 12 12 13;
     --foreground: 252 252 252;
     --card: 18 18 19;
@@ -93,62 +68,24 @@
   
   body {
     @apply bg-background text-foreground font-sans;
-    font-feature-settings: "rlig" 1, "calt" 1, "kern" 1;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-synthesis: none;
-    letter-spacing: -0.011em;
   }
   
-  /* CRED-inspired typography - optimized for crisp rendering */
   .typography-hero {
-    @apply font-display text-5xl md:text-6xl lg:text-7xl font-medium leading-none tracking-tight;
-    font-feature-settings: "ss01" 1, "kern" 1;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
+    @apply font-display text-5xl md:text-6xl lg:text-7xl font-medium leading-none;
   }
   
   .typography-headline {
-    @apply font-display text-3xl md:text-4xl lg:text-5xl font-medium leading-tight tracking-tight;
-    font-feature-settings: "kern" 1;
-    text-rendering: optimizeLegibility;
+    @apply font-display text-3xl md:text-4xl lg:text-5xl font-medium leading-tight;
   }
   
   .typography-subtitle {
     @apply font-sans text-base md:text-lg leading-relaxed text-muted-foreground font-normal;
-    text-rendering: optimizeLegibility;
   }
   
   .typography-body {
     @apply font-sans text-sm leading-relaxed;
-    text-rendering: optimizeLegibility;
-  }
-  
-  /* Premium components with better contrast */
-  .card-premium {
-    @apply bg-card border border-border backdrop-blur-sm shadow-lg;
-  }
-  
-  .button-premium {
-    @apply bg-primary text-primary-foreground font-medium border border-border;
-    @apply shadow-sm transition-all duration-200 hover:shadow-md hover:bg-primary/90;
-    text-rendering: optimizeLegibility;
-  }
-  
-  /* Animations */
-  .animate-fade-up {
-    animation: fadeUp 0.5s ease-out forwards;
-  }
-  
-  @keyframes fadeUp {
-    from {
-      opacity: 0;
-      transform: translateY(16px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 }
