@@ -1,7 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dumbbell, Library, CalendarDays } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { TodayWorkouts } from "@/components/TodayWorkouts";
 import { WeeklyProgressTracker } from "@/components/WeeklyProgressTracker";
@@ -27,60 +23,6 @@ const Index = () => {
             <TodayWorkouts />
             <WeeklyProgressTracker />
           </div>
-        </div>
-        
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <Dumbbell className="h-8 w-8 text-primary" />
-              </div>
-              <CardTitle>Generate Workouts</CardTitle>
-              
-            </CardHeader>
-            <CardContent className="h-24 flex items-center">
-              <Button asChild className="w-full text-base py-6">
-                <Link to="/generator">
-                  Generate Workouts
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <Library className="h-8 w-8 text-primary" />
-              </div>
-              <CardTitle>Exercise Library</CardTitle>
-              
-            </CardHeader>
-            <CardContent className="h-24 flex items-center">
-              <Button asChild className="w-full text-base py-6">
-                <Link to="/exercises">
-                  Browse Exercises
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <CalendarDays className="h-8 w-8 text-primary" />
-              </div>
-              <CardTitle>Workout Calendar</CardTitle>
-              
-            </CardHeader>
-            <CardContent className="h-24 flex items-center">
-              <Button asChild className="w-full text-base py-6">
-                <Link to="/calendar">
-                  View Calendar
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>;
