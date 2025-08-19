@@ -67,17 +67,17 @@ export const WeeklyProgressTracker = () => {
     if (!progress) return <Minus className="h-4 w-4 text-muted-foreground" />;
     
     if (progress.improvement > 0) {
-      return <TrendingUp className="h-4 w-4 text-green-500" />;
+      return <TrendingUp className="h-4 w-4 text-success" />;
     } else if (progress.improvement < 0) {
-      return <TrendingDown className="h-4 w-4 text-red-500" />;
+      return <TrendingDown className="h-4 w-4 text-destructive" />;
     }
     return <Minus className="h-4 w-4 text-muted-foreground" />;
   };
 
   const getTrendColor = () => {
     if (!progress) return "text-muted-foreground";
-    if (progress.improvement > 0) return "text-green-600";
-    if (progress.improvement < 0) return "text-red-600";
+    if (progress.improvement > 0) return "text-success";
+    if (progress.improvement < 0) return "text-destructive";
     return "text-muted-foreground";
   };
 

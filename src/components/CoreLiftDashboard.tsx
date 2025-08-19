@@ -74,16 +74,16 @@ export const CoreLiftDashboard = () => {
 
   const renderTrendIcon = (improvement: number) => {
     if (improvement > 0) {
-      return <TrendingUp className="h-4 w-4 text-green-500" />;
+      return <TrendingUp className="h-4 w-4 text-success" />;
     } else if (improvement < 0) {
-      return <TrendingDown className="h-4 w-4 text-red-500" />;
+      return <TrendingDown className="h-4 w-4 text-destructive" />;
     }
     return <Minus className="h-4 w-4 text-muted-foreground" />;
   };
 
   const getImprovementColor = (improvement: number) => {
-    if (improvement > 0) return "text-green-600";
-    if (improvement < 0) return "text-red-600";
+    if (improvement > 0) return "text-success";
+    if (improvement < 0) return "text-destructive";
     return "text-muted-foreground";
   };
 
