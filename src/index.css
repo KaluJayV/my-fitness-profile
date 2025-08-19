@@ -2,119 +2,83 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
-    /* Gym-inspired light mode: Soft Off-White base */
-    --background: 0 0% 96%;
-    --foreground: 0 0% 11%;
-
-    --card: 0 0% 96%;
-    --card-foreground: 0 0% 11%;
-
-    --popover: 0 0% 96%;
-    --popover-foreground: 0 0% 11%;
-
-    /* Deep Crimson Red for primary actions */
-    --primary: 0 66% 42%;
-    --primary-foreground: 0 0% 96%;
-
-    /* Slate Gray for secondary elements */
-    --secondary: 200 12% 28%;
-    --secondary-foreground: 0 0% 96%;
-
-    /* Muted slate tones */
-    --muted: 200 12% 88%;
-    --muted-foreground: 200 12% 28%;
-
-    /* Electric Blue for accents */
-    --accent: 200 100% 36%;
-    --accent-foreground: 0 0% 96%;
-
-    /* Burnt Orange for destructive actions */
-    --destructive: 24 100% 41%;
-    --destructive-foreground: 0 0% 96%;
-
-    /* Subtle borders and inputs */
-    --border: 200 12% 85%;
-    --input: 200 12% 88%;
-    --ring: 0 66% 42%;
-
-    --radius: 0.5rem;
-
-    /* Sidebar with slate theme */
-    --sidebar-background: 200 12% 92%;
-    --sidebar-foreground: 200 12% 28%;
-    --sidebar-primary: 0 66% 42%;
-    --sidebar-primary-foreground: 0 0% 96%;
-    --sidebar-accent: 200 12% 88%;
-    --sidebar-accent-foreground: 200 12% 28%;
-    --sidebar-border: 200 12% 85%;
-    --sidebar-ring: 200 100% 36%;
-
-    /* Custom gym colors */
-    --steel-blue: 207 44% 49%;
-    --olive-green: 78 38% 30%;
-    --charcoal: 0 0% 11%;
-    --electric-blue: 200 100% 36%;
-    --burnt-orange: 24 100% 41%;
+    /* CRED-inspired dark sophisticated theme */
+    --background: 13 13 14;                    /* Very dark charcoal */
+    --foreground: 250 250 250;                 /* Clean white */
+    
+    --card: 20 20 21;                          /* Dark card background */
+    --card-foreground: 245 245 246;            /* Light card text */
+    
+    --popover: 20 20 21;                       /* Dark popover */
+    --popover-foreground: 245 245 246;         /* Light popover text */
+    
+    --primary: 245 245 246;                    /* Clean white primary */
+    --primary-foreground: 13 13 14;            /* Dark text on primary */
+    
+    --secondary: 32 32 35;                     /* Subtle dark secondary */
+    --secondary-foreground: 212 212 216;       /* Light secondary text */
+    
+    --muted: 28 28 30;                         /* Muted dark background */
+    --muted-foreground: 163 163 163;           /* Muted text */
+    
+    --accent: 39 39 42;                        /* Accent dark */
+    --accent-foreground: 245 245 246;          /* Light accent text */
+    
+    --destructive: 248 113 113;                /* Red for destructive actions */
+    --destructive-foreground: 254 242 242;     /* Light destructive text */
+    
+    --border: 39 39 42;                        /* Subtle borders */
+    --input: 39 39 42;                         /* Input background */
+    --ring: 142 142 142;                       /* Focus ring */
+    
+    --radius: 0.75rem;                         /* Rounded corners */
+    
+    /* CRED-inspired gradients and effects */
+    --gradient-primary: linear-gradient(135deg, hsl(13 13 14), hsl(20 20 21));
+    --gradient-accent: linear-gradient(135deg, hsl(32 32 35), hsl(39 39 42));
+    --gradient-hero: linear-gradient(180deg, hsl(13 13 14), hsl(20 20 21));
+    
+    /* Premium shadows */
+    --shadow-premium: 0 25px 50px -12px hsl(0 0 0 / 0.8);
+    --shadow-elegant: 0 10px 30px -10px hsl(0 0 0 / 0.6);
+    --shadow-subtle: 0 4px 16px -6px hsl(0 0 0 / 0.4);
+    
+    /* Smooth transitions */
+    --transition-premium: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .dark {
-    /* Gym-inspired dark mode: Charcoal Gray base */
-    --background: 0 0% 11%;
-    --foreground: 0 0% 96%;
-
-    --card: 0 0% 11%;
-    --card-foreground: 0 0% 96%;
-
-    --popover: 0 0% 11%;
-    --popover-foreground: 0 0% 96%;
-
-    /* Deep Crimson Red remains primary in dark mode */
-    --primary: 0 66% 50%;
-    --primary-foreground: 0 0% 96%;
-
-    /* Slate Gray for secondary, lighter in dark mode */
-    --secondary: 200 12% 35%;
-    --secondary-foreground: 0 0% 96%;
-
-    /* Darker muted tones for dark mode */
-    --muted: 200 12% 20%;
-    --muted-foreground: 200 12% 65%;
-
-    /* Electric Blue accent */
-    --accent: 200 100% 42%;
-    --accent-foreground: 0 0% 96%;
-
-    /* Burnt Orange for destructive */
-    --destructive: 24 100% 50%;
-    --destructive-foreground: 0 0% 96%;
-
-    /* Dark mode borders and inputs */
-    --border: 200 12% 25%;
-    --input: 200 12% 20%;
-    --ring: 0 66% 50%;
-
-    /* Dark sidebar theme */
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 0 66% 50%;
-    --sidebar-primary-foreground: 0 0% 96%;
-    --sidebar-accent: 200 12% 18%;
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 200 12% 15%;
-    --sidebar-ring: 200 100% 42%;
-
-    /* Custom gym colors remain the same */
-    --steel-blue: 207 44% 49%;
-    --olive-green: 78 38% 30%;
-    --charcoal: 0 0% 11%;
-    --electric-blue: 200 100% 42%;
-    --burnt-orange: 24 100% 50%;
+    /* Dark mode already optimized above */
+    --background: 13 13 14;
+    --foreground: 250 250 250;
+    
+    --card: 20 20 21;
+    --card-foreground: 245 245 246;
+    
+    --popover: 20 20 21;
+    --popover-foreground: 245 245 246;
+    
+    --primary: 245 245 246;
+    --primary-foreground: 13 13 14;
+    
+    --secondary: 32 32 35;
+    --secondary-foreground: 212 212 216;
+    
+    --muted: 28 28 30;
+    --muted-foreground: 163 163 163;
+    
+    --accent: 39 39 42;
+    --accent-foreground: 245 245 246;
+    
+    --destructive: 248 113 113;
+    --destructive-foreground: 254 242 242;
+    
+    --border: 39 39 42;
+    --input: 39 39 42;
+    --ring: 142 142 142;
   }
 }
 
@@ -122,8 +86,54 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
-
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    letter-spacing: -0.015em;
+  }
+  
+  /* CRED-inspired typography */
+  .typography-hero {
+    @apply font-display text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-none;
+    font-feature-settings: "ss01" 1;
+  }
+  
+  .typography-headline {
+    @apply font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
+  }
+  
+  .typography-subtitle {
+    @apply font-sans text-lg md:text-xl text-muted-foreground font-light tracking-wide;
+  }
+  
+  .typography-body {
+    @apply font-sans text-base leading-relaxed;
+  }
+  
+  /* Premium components */
+  .card-premium {
+    @apply bg-gradient-to-br from-card to-muted border border-border/50 shadow-elegant backdrop-blur-sm;
+  }
+  
+  .button-premium {
+    @apply bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium tracking-wide;
+    @apply shadow-elegant transition-all duration-300 hover:shadow-premium hover:scale-[1.02];
+  }
+  
+  /* Animations */
+  .animate-fade-up {
+    animation: fadeUp 0.6s ease-out forwards;
+  }
+  
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
