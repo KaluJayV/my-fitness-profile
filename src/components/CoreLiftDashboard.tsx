@@ -40,16 +40,33 @@ export const CoreLiftDashboard = () => {
 
   const fetchCoreLiftMaxes = async () => {
     try {
-      if (!user) return;
+      if (!user) {
+        console.log('CoreLiftDashboard: No user found');
+        setCoreLiftMaxes([]);
+        return;
+      }
 
+      console.log('CoreLiftDashboard: Fetching core lift maxes for user:', user.id);
+      
+      // Add timestamp to prevent caching issues
       const { data, error } = await supabase
-        .rpc('get_current_core_lift_maxes');
+        .rpc('get_current_core_lift_maxes', { p_user_id: user.id });
 
-      if (error) throw error;
+      console.log('CoreLiftDashboard: Raw data response:', { data, error });
 
-      setCoreLiftMaxes(data || []);
+      if (error) {
+        console.error('CoreLiftDashboard: Database error:', error);
+        throw error;
+      }
+
+      const cleanData = data || [];
+      console.log('CoreLiftDashboard: Processed data:', cleanData);
+      
+      // Ensure we clear any stale data
+      setCoreLiftMaxes(cleanData);
     } catch (error) {
-      console.error('Error fetching core lift maxes:', error);
+      console.error('CoreLiftDashboard: Error fetching core lift maxes:', error);
+      setCoreLiftMaxes([]); // Clear data on error
     } finally {
       setLoading(false);
     }
