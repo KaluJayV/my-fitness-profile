@@ -8,113 +8,113 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Gym-inspired light mode: Soft Off-White base */
-    --background: 0 0% 96%;
-    --foreground: 0 0% 11%;
+    /* Urban Twilight light mode: Light silver to sophisticated grays */
+    --background: 0 0% 98%;
+    --foreground: 220 15% 20%;
 
-    --card: 0 0% 96%;
-    --card-foreground: 0 0% 11%;
+    --card: 0 0% 97%;
+    --card-foreground: 220 15% 20%;
 
-    --popover: 0 0% 96%;
-    --popover-foreground: 0 0% 11%;
+    --popover: 0 0% 97%;
+    --popover-foreground: 220 15% 20%;
 
-    /* Deep Crimson Red for primary actions */
-    --primary: 0 66% 42%;
-    --primary-foreground: 0 0% 96%;
+    /* Sophisticated slate gray for primary actions */
+    --primary: 220 20% 35%;
+    --primary-foreground: 0 0% 98%;
 
-    /* Slate Gray for secondary elements */
-    --secondary: 200 12% 28%;
-    --secondary-foreground: 0 0% 96%;
+    /* Mid-tone slate for secondary elements */
+    --secondary: 220 12% 55%;
+    --secondary-foreground: 0 0% 98%;
 
-    /* Muted slate tones */
-    --muted: 200 12% 88%;
-    --muted-foreground: 200 12% 28%;
+    /* Light silver muted tones */
+    --muted: 220 8% 92%;
+    --muted-foreground: 220 15% 45%;
 
-    /* Electric Blue for accents */
-    --accent: 200 100% 36%;
-    --accent-foreground: 0 0% 96%;
+    /* Deep slate accent */
+    --accent: 220 25% 30%;
+    --accent-foreground: 0 0% 98%;
 
-    /* Burnt Orange for destructive actions */
-    --destructive: 24 100% 41%;
-    --destructive-foreground: 0 0% 96%;
+    /* Warm slate for destructive actions */
+    --destructive: 0 25% 45%;
+    --destructive-foreground: 0 0% 98%;
 
-    /* Subtle borders and inputs */
-    --border: 200 12% 85%;
-    --input: 200 12% 88%;
-    --ring: 0 66% 42%;
+    /* Subtle silver borders and inputs */
+    --border: 220 8% 88%;
+    --input: 220 8% 94%;
+    --ring: 220 20% 35%;
 
     --radius: 0.5rem;
 
-    /* Sidebar with slate theme */
-    --sidebar-background: 200 12% 92%;
-    --sidebar-foreground: 200 12% 28%;
-    --sidebar-primary: 0 66% 42%;
-    --sidebar-primary-foreground: 0 0% 96%;
-    --sidebar-accent: 200 12% 88%;
-    --sidebar-accent-foreground: 200 12% 28%;
-    --sidebar-border: 200 12% 85%;
-    --sidebar-ring: 200 100% 36%;
+    /* Sidebar with silver theme */
+    --sidebar-background: 220 10% 95%;
+    --sidebar-foreground: 220 15% 25%;
+    --sidebar-primary: 220 20% 35%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 220 8% 90%;
+    --sidebar-accent-foreground: 220 15% 30%;
+    --sidebar-border: 220 8% 85%;
+    --sidebar-ring: 220 25% 30%;
 
-    /* Custom gym colors */
-    --steel-blue: 207 44% 49%;
-    --olive-green: 78 38% 30%;
-    --charcoal: 0 0% 11%;
-    --electric-blue: 200 100% 36%;
-    --burnt-orange: 24 100% 41%;
+    /* Urban Twilight custom colors */
+    --deep-slate: 220 25% 25%;
+    --mid-slate: 220 15% 45%;
+    --light-slate: 220 10% 65%;
+    --silver: 220 8% 85%;
+    --warm-slate: 15 20% 40%;
   }
 
   .dark {
-    /* Gym-inspired dark mode: Charcoal Gray base */
-    --background: 0 0% 11%;
-    --foreground: 0 0% 96%;
+    /* Urban Twilight dark mode: Deep slate to charcoal */
+    --background: 220 25% 8%;
+    --foreground: 220 8% 92%;
 
-    --card: 0 0% 11%;
-    --card-foreground: 0 0% 96%;
+    --card: 220 20% 10%;
+    --card-foreground: 220 8% 92%;
 
-    --popover: 0 0% 11%;
-    --popover-foreground: 0 0% 96%;
+    --popover: 220 20% 10%;
+    --popover-foreground: 220 8% 92%;
 
-    /* Deep Crimson Red remains primary in dark mode */
-    --primary: 0 66% 50%;
-    --primary-foreground: 0 0% 96%;
+    /* Lighter slate for primary in dark mode */
+    --primary: 220 15% 65%;
+    --primary-foreground: 220 25% 8%;
 
-    /* Slate Gray for secondary, lighter in dark mode */
-    --secondary: 200 12% 35%;
-    --secondary-foreground: 0 0% 96%;
+    /* Mid-tone slate for secondary */
+    --secondary: 220 15% 35%;
+    --secondary-foreground: 220 8% 92%;
 
-    /* Darker muted tones for dark mode */
-    --muted: 200 12% 20%;
-    --muted-foreground: 200 12% 65%;
+    /* Dark slate muted tones */
+    --muted: 220 20% 18%;
+    --muted-foreground: 220 10% 70%;
 
-    /* Electric Blue accent */
-    --accent: 200 100% 42%;
-    --accent-foreground: 0 0% 96%;
+    /* Silver accent for dark mode */
+    --accent: 220 8% 75%;
+    --accent-foreground: 220 25% 8%;
 
-    /* Burnt Orange for destructive */
-    --destructive: 24 100% 50%;
-    --destructive-foreground: 0 0% 96%;
+    /* Warm destructive for dark mode */
+    --destructive: 0 30% 55%;
+    --destructive-foreground: 220 25% 8%;
 
     /* Dark mode borders and inputs */
-    --border: 200 12% 25%;
-    --input: 200 12% 20%;
-    --ring: 0 66% 50%;
+    --border: 220 20% 22%;
+    --input: 220 20% 15%;
+    --ring: 220 15% 65%;
 
     /* Dark sidebar theme */
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 0 66% 50%;
-    --sidebar-primary-foreground: 0 0% 96%;
-    --sidebar-accent: 200 12% 18%;
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 200 12% 15%;
-    --sidebar-ring: 200 100% 42%;
+    --sidebar-background: 220 30% 6%;
+    --sidebar-foreground: 220 8% 88%;
+    --sidebar-primary: 220 15% 65%;
+    --sidebar-primary-foreground: 220 25% 8%;
+    --sidebar-accent: 220 20% 12%;
+    --sidebar-accent-foreground: 220 8% 85%;
+    --sidebar-border: 220 25% 15%;
+    --sidebar-ring: 220 8% 75%;
 
-    /* Custom gym colors remain the same */
-    --steel-blue: 207 44% 49%;
-    --olive-green: 78 38% 30%;
-    --charcoal: 0 0% 11%;
-    --electric-blue: 200 100% 42%;
-    --burnt-orange: 24 100% 50%;
+    /* Urban Twilight dark colors */
+    --deep-slate: 220 30% 15%;
+    --mid-slate: 220 15% 45%;
+    --light-slate: 220 10% 75%;
+    --silver: 220 8% 85%;
+    --warm-slate: 15 20% 50%;
   }
 }
 
