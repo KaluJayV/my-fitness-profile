@@ -137,105 +137,6 @@ const AuthPage = () => {
     }
   };
 
-  const handleTestLogin = async () => {
-    setLoading(true);
-    setError("");
-
-    try {
-      cleanupAuthState();
-      
-      try {
-        await supabase.auth.signOut({ scope: 'global' });
-      } catch (err) {
-        // Continue even if this fails
-      }
-
-      // First try to sign in
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: "jeff.test@gmail.com",
-        password: "password",
-      });
-
-      if (signInError) {
-        // Handle email not confirmed error
-        if (signInError.message.includes('Email not confirmed')) {
-          setError("Jeff's email needs to be confirmed. Please go to Supabase Dashboard > Authentication > Users, find jeff.test@gmail.com, and click 'Confirm User' or disable email confirmation in Authentication > Settings.");
-          return;
-        }
-        
-        // If sign in fails, try to create the user first
-        if (signInError.message.includes('Invalid login credentials')) {
-          toast({
-            title: "Creating test user...",
-            description: "Jeff doesn't exist yet, creating account",
-          });
-
-          const redirectUrl = `${window.location.origin}/`;
-          
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: "jeff.test@gmail.com",
-            password: "password",
-            options: {
-              emailRedirectTo: redirectUrl,
-              data: {
-                username: 'jeff'
-              }
-            }
-          });
-
-          if (signUpError) throw signUpError;
-
-          if (signUpData.user) {
-            // Check if user was created but needs confirmation
-            if (!signUpData.session) {
-              setError("Test user created but needs email confirmation. Please go to Supabase Dashboard > Authentication > Users, find jeff.test@gmail.com, and click 'Confirm User' or disable email confirmation in Authentication > Settings.");
-              return;
-            }
-
-            // Update the existing profile with the correct user ID
-            const { error: profileError } = await supabase
-              .from('users')
-              .upsert({
-                id: signUpData.user.id,
-                username: 'jeff',
-                email: 'jeff.test@gmail.com',
-                goal: 'hypertrophy',
-                experience: 'intermediate',
-                equipment: ['db', 'barbell', 'bench'],
-                injuries: []
-              });
-
-            if (profileError) {
-              console.error('Profile update error:', profileError);
-            }
-
-            toast({
-              title: "Test account created!",
-              description: "Jeff's account has been created and you're now signed in.",
-            });
-            
-            window.location.href = '/';
-            return;
-          }
-        } else {
-          throw signInError;
-        }
-      }
-
-      if (signInData.user) {
-        toast({
-          title: "Welcome back, Jeff!",
-          description: "Test account signed in successfully.",
-        });
-        window.location.href = '/';
-      }
-    } catch (error: any) {
-      console.error('Test login error:', error);
-      setError(`Test login failed: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -359,26 +260,6 @@ const AuthPage = () => {
               </TabsContent>
             </Tabs>
 
-            <div className="mt-6 pt-6 border-t">
-              <Button 
-                onClick={handleTestLogin}
-                variant="outline" 
-                className="w-full"
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating Jeff...
-                  </>
-                ) : (
-                  '🧪 Quick Test Login (Jeff)'
-                )}
-              </Button>
-              <p className="text-xs text-muted-foreground text-center mt-2">
-                Creates test account if needed: jeff.test@gmail.com / password
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>
