@@ -2,99 +2,119 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
 @layer base {
   :root {
-    /* Dark slate and forest green theme */
-    --background: 0 0 0;                       /* Pure black background */
-    --foreground: 248 250 252;                 /* Slate 50 text */
-    
-    --card: 15 23 42;                          /* Slate 900 card background */
-    --card-foreground: 241 245 249;            /* Slate 100 card text */
-    
-    --popover: 15 23 42;                       /* Slate 900 popover */
-    --popover-foreground: 241 245 249;         /* Slate 100 popover text */
-    
-    --primary: 34 197 94;                      /* Forest green primary */
-    --primary-foreground: 2 6 23;              /* Dark foreground on primary */
-    
-    --secondary: 30 41 59;                     /* Slate 700 secondary */
-    --secondary-foreground: 226 232 240;       /* Slate 200 secondary text */
-    
-    --muted: 51 65 85;                         /* Slate 600 muted background */
-    --muted-foreground: 148 163 184;           /* Slate 400 muted text */
-    
-    --accent: 22 163 74;                       /* Forest green accent */
-    --accent-foreground: 240 253 244;          /* Green 50 accent text */
-    
-    --destructive: 239 68 68;                  /* Red 500 destructive */
-    --destructive-foreground: 254 242 242;     /* Red 50 destructive text */
-    
-    --border: 51 65 85;                        /* Slate 600 borders */
-    --input: 30 41 59;                         /* Slate 700 input background */
-    --ring: 34 197 94;                         /* Forest green focus ring */
-    
-    --radius: 0.75rem;                         /* Rounded corners */
-    
-    /* Forest green status colors */
-    --success: 34 197 94;                      /* Forest green success */
-    --success-foreground: 240 253 244;         /* Green 50 success text */
-    --warning: 245 158 11;                     /* Amber 500 warning */
-    --warning-foreground: 255 251 235;         /* Amber 50 warning text */
-    --info: 59 130 246;                        /* Blue 500 info */
-    --info-foreground: 239 246 255;            /* Blue 50 info text */
-    
-    /* Dark gradients with forest green accents */
-    --gradient-primary: linear-gradient(135deg, hsl(0 0 0), hsl(15 23 42));
-    --gradient-accent: linear-gradient(135deg, hsl(22 163 74), hsl(34 197 94));
-    --gradient-hero: linear-gradient(180deg, hsl(0 0 0), hsl(30 41 59));
-    
-    /* Premium shadows */
-    --shadow-premium: 0 25px 50px -12px hsl(0 0 0 / 0.8);
-    --shadow-elegant: 0 10px 30px -10px hsl(0 0 0 / 0.6);
-    --shadow-subtle: 0 4px 16px -6px hsl(0 0 0 / 0.4);
-    
-    /* Smooth transitions */
-    --transition-premium: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Gym-inspired light mode: Soft Off-White base */
+    --background: 0 0% 96%;
+    --foreground: 0 0% 11%;
+
+    --card: 0 0% 96%;
+    --card-foreground: 0 0% 11%;
+
+    --popover: 0 0% 96%;
+    --popover-foreground: 0 0% 11%;
+
+    /* Deep Crimson Red for primary actions */
+    --primary: 0 66% 42%;
+    --primary-foreground: 0 0% 96%;
+
+    /* Slate Gray for secondary elements */
+    --secondary: 200 12% 28%;
+    --secondary-foreground: 0 0% 96%;
+
+    /* Muted slate tones */
+    --muted: 200 12% 88%;
+    --muted-foreground: 200 12% 28%;
+
+    /* Electric Blue for accents */
+    --accent: 200 100% 36%;
+    --accent-foreground: 0 0% 96%;
+
+    /* Burnt Orange for destructive actions */
+    --destructive: 24 100% 41%;
+    --destructive-foreground: 0 0% 96%;
+
+    /* Subtle borders and inputs */
+    --border: 200 12% 85%;
+    --input: 200 12% 88%;
+    --ring: 0 66% 42%;
+
+    --radius: 0.5rem;
+
+    /* Sidebar with slate theme */
+    --sidebar-background: 200 12% 92%;
+    --sidebar-foreground: 200 12% 28%;
+    --sidebar-primary: 0 66% 42%;
+    --sidebar-primary-foreground: 0 0% 96%;
+    --sidebar-accent: 200 12% 88%;
+    --sidebar-accent-foreground: 200 12% 28%;
+    --sidebar-border: 200 12% 85%;
+    --sidebar-ring: 200 100% 36%;
+
+    /* Custom gym colors */
+    --steel-blue: 207 44% 49%;
+    --olive-green: 78 38% 30%;
+    --charcoal: 0 0% 11%;
+    --electric-blue: 200 100% 36%;
+    --burnt-orange: 24 100% 41%;
   }
 
   .dark {
-    /* Dark slate and forest green theme */
-    --background: 0 0 0;                       /* Pure black background */
-    --foreground: 248 250 252;                 /* Slate 50 text */
-    
-    --card: 15 23 42;                          /* Slate 900 card background */
-    --card-foreground: 241 245 249;            /* Slate 100 card text */
-    
-    --popover: 15 23 42;                       /* Slate 900 popover */
-    --popover-foreground: 241 245 249;         /* Slate 100 popover text */
-    
-    --primary: 34 197 94;                      /* Forest green primary */
-    --primary-foreground: 2 6 23;              /* Dark foreground on primary */
-    
-    --secondary: 30 41 59;                     /* Slate 700 secondary */
-    --secondary-foreground: 226 232 240;       /* Slate 200 secondary text */
-    
-    --muted: 51 65 85;                         /* Slate 600 muted background */
-    --muted-foreground: 148 163 184;           /* Slate 400 muted text */
-    
-    --accent: 22 163 74;                       /* Forest green accent */
-    --accent-foreground: 240 253 244;          /* Green 50 accent text */
-    
-    --destructive: 239 68 68;                  /* Red 500 destructive */
-    --destructive-foreground: 254 242 242;     /* Red 50 destructive text */
-    
-    --border: 51 65 85;                        /* Slate 600 borders */
-    --input: 30 41 59;                         /* Slate 700 input background */
-    --ring: 34 197 94;                         /* Forest green focus ring */
-    
-    /* Forest green status colors */
-    --success: 34 197 94;                      /* Forest green success */
-    --success-foreground: 240 253 244;         /* Green 50 success text */
-    --warning: 245 158 11;                     /* Amber 500 warning */
-    --warning-foreground: 255 251 235;         /* Amber 50 warning text */
-    --info: 59 130 246;                        /* Blue 500 info */
-    --info-foreground: 239 246 255;            /* Blue 50 info text */
+    /* Gym-inspired dark mode: Charcoal Gray base */
+    --background: 0 0% 11%;
+    --foreground: 0 0% 96%;
+
+    --card: 0 0% 11%;
+    --card-foreground: 0 0% 96%;
+
+    --popover: 0 0% 11%;
+    --popover-foreground: 0 0% 96%;
+
+    /* Deep Crimson Red remains primary in dark mode */
+    --primary: 0 66% 50%;
+    --primary-foreground: 0 0% 96%;
+
+    /* Slate Gray for secondary, lighter in dark mode */
+    --secondary: 200 12% 35%;
+    --secondary-foreground: 0 0% 96%;
+
+    /* Darker muted tones for dark mode */
+    --muted: 200 12% 20%;
+    --muted-foreground: 200 12% 65%;
+
+    /* Electric Blue accent */
+    --accent: 200 100% 42%;
+    --accent-foreground: 0 0% 96%;
+
+    /* Burnt Orange for destructive */
+    --destructive: 24 100% 50%;
+    --destructive-foreground: 0 0% 96%;
+
+    /* Dark mode borders and inputs */
+    --border: 200 12% 25%;
+    --input: 200 12% 20%;
+    --ring: 0 66% 50%;
+
+    /* Dark sidebar theme */
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 0 66% 50%;
+    --sidebar-primary-foreground: 0 0% 96%;
+    --sidebar-accent: 200 12% 18%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 200 12% 15%;
+    --sidebar-ring: 200 100% 42%;
+
+    /* Custom gym colors remain the same */
+    --steel-blue: 207 44% 49%;
+    --olive-green: 78 38% 30%;
+    --charcoal: 0 0% 11%;
+    --electric-blue: 200 100% 42%;
+    --burnt-orange: 24 100% 50%;
   }
 }
 
@@ -102,54 +122,8 @@
   * {
     @apply border-border;
   }
-  
+
   body {
-    @apply bg-background text-foreground font-sans;
-    font-feature-settings: "rlig" 1, "calt" 1;
-    letter-spacing: -0.015em;
-  }
-  
-  /* CRED-inspired typography */
-  .typography-hero {
-    @apply font-display text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-none;
-    font-feature-settings: "ss01" 1;
-  }
-  
-  .typography-headline {
-    @apply font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
-  }
-  
-  .typography-subtitle {
-    @apply font-sans text-lg md:text-xl text-muted-foreground font-light tracking-wide;
-  }
-  
-  .typography-body {
-    @apply font-sans text-base leading-relaxed;
-  }
-  
-  /* Premium components */
-  .card-premium {
-    @apply bg-gradient-to-br from-card to-muted border border-border/50 shadow-elegant backdrop-blur-sm;
-  }
-  
-  .button-premium {
-    @apply bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium tracking-wide;
-    @apply shadow-elegant transition-all duration-300 hover:shadow-premium hover:scale-[1.02];
-  }
-  
-  /* Animations */
-  .animate-fade-up {
-    animation: fadeUp 0.6s ease-out forwards;
-  }
-  
-  @keyframes fadeUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    @apply bg-background text-foreground;
   }
 }
