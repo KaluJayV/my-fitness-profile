@@ -2,56 +2,154 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
-  --primary: 240 5.9% 10%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
-  --ring: 240 5.9% 10%;
-  --radius: 0.5rem;
+@layer base {
+  :root {
+    /* CRED-inspired dark sophisticated theme */
+    --background: 13 13 14;                    /* Very dark charcoal */
+    --foreground: 250 250 250;                 /* Clean white */
+    
+    --card: 20 20 21;                          /* Dark card background */
+    --card-foreground: 245 245 246;            /* Light card text */
+    
+    --popover: 20 20 21;                       /* Dark popover */
+    --popover-foreground: 245 245 246;         /* Light popover text */
+    
+    --primary: 245 245 246;                    /* Clean white primary */
+    --primary-foreground: 13 13 14;            /* Dark text on primary */
+    
+    --secondary: 32 32 35;                     /* Subtle dark secondary */
+    --secondary-foreground: 212 212 216;       /* Light secondary text */
+    
+    --muted: 28 28 30;                         /* Muted dark background */
+    --muted-foreground: 163 163 163;           /* Muted text */
+    
+    --accent: 39 39 42;                        /* Accent dark */
+    --accent-foreground: 245 245 246;          /* Light accent text */
+    
+    --destructive: 220 38% 56%;                /* Muted red */
+    --destructive-foreground: 254 242 242;     /* Light destructive text */
+    
+    --border: 39 39 42;                        /* Subtle borders */
+    --input: 39 39 42;                         /* Input background */
+    --ring: 142 142 142;                       /* Focus ring */
+    
+    --radius: 0.75rem;                         /* Rounded corners */
+    
+    /* Sophisticated status colors */
+    --success: 142 69% 58%;                    /* Muted sage green */
+    --success-foreground: 240 240 240;
+    --warning: 45 93% 47%;                     /* Muted amber */
+    --warning-foreground: 240 240 240;
+    --info: 210 40% 60%;                       /* Muted blue */
+    --info-foreground: 240 240 240;
+    
+    /* CRED-inspired gradients and effects */
+    --gradient-primary: linear-gradient(135deg, hsl(13 13 14), hsl(20 20 21));
+    --gradient-accent: linear-gradient(135deg, hsl(32 32 35), hsl(39 39 42));
+    --gradient-hero: linear-gradient(180deg, hsl(13 13 14), hsl(20 20 21));
+    
+    /* Premium shadows */
+    --shadow-premium: 0 25px 50px -12px hsl(0 0 0 / 0.8);
+    --shadow-elegant: 0 10px 30px -10px hsl(0 0 0 / 0.6);
+    --shadow-subtle: 0 4px 16px -6px hsl(0 0 0 / 0.4);
+    
+    /* Smooth transitions */
+    --transition-premium: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    /* Dark mode already optimized above */
+    --background: 13 13 14;
+    --foreground: 250 250 250;
+    
+    --card: 20 20 21;
+    --card-foreground: 245 245 246;
+    
+    --popover: 20 20 21;
+    --popover-foreground: 245 245 246;
+    
+    --primary: 245 245 246;
+    --primary-foreground: 13 13 14;
+    
+    --secondary: 32 32 35;
+    --secondary-foreground: 212 212 216;
+    
+    --muted: 28 28 30;
+    --muted-foreground: 163 163 163;
+    
+    --accent: 39 39 42;
+    --accent-foreground: 245 245 246;
+    
+    --destructive: 220 38% 56%;
+    --destructive-foreground: 254 242 242;
+    
+    --border: 39 39 42;
+    --input: 39 39 42;
+    --ring: 142 142 142;
+    
+    /* Sophisticated status colors */
+    --success: 142 69% 58%;
+    --success-foreground: 240 240 240;
+    --warning: 45 93% 47%;
+    --warning-foreground: 240 240 240;
+    --info: 210 40% 60%;
+    --info-foreground: 240 240 240;
+  }
 }
 
-.dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 0 0% 98%;
-  --primary-foreground: 240 5.9% 10%;
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 240 4.9% 83.9%;
-}
-
-* {
-  border-color: hsl(var(--border));
-}
-
-body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    letter-spacing: -0.015em;
+  }
+  
+  /* CRED-inspired typography */
+  .typography-hero {
+    @apply font-display text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-none;
+    font-feature-settings: "ss01" 1;
+  }
+  
+  .typography-headline {
+    @apply font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
+  }
+  
+  .typography-subtitle {
+    @apply font-sans text-lg md:text-xl text-muted-foreground font-light tracking-wide;
+  }
+  
+  .typography-body {
+    @apply font-sans text-base leading-relaxed;
+  }
+  
+  /* Premium components */
+  .card-premium {
+    @apply bg-gradient-to-br from-card to-muted border border-border/50 shadow-elegant backdrop-blur-sm;
+  }
+  
+  .button-premium {
+    @apply bg-gradient-to-r from-primary to-primary/90 text-primary-foreground font-medium tracking-wide;
+    @apply shadow-elegant transition-all duration-300 hover:shadow-premium hover:scale-[1.02];
+  }
+  
+  /* Animations */
+  .animate-fade-up {
+    animation: fadeUp 0.6s ease-out forwards;
+  }
+  
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }

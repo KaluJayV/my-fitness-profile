@@ -19,8 +19,8 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				display: ['Playfair Display', 'Georgia', 'serif'],
-				sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+				display: ['Playfair Display', 'serif'],
+				sans: ['Inter', 'system-ui', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -75,22 +75,28 @@ export default {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			animation: {
-				"fade-up": "fadeUp 0.5s ease-out forwards",
-				"fade-in": "fadeIn 0.3s ease-out forwards",
+				"fade-up": "fadeUp 0.6s ease-out forwards",
+				"premium-hover": "premiumHover 0.3s ease-out forwards",
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
 			},
 			boxShadow: {
-				'sm': 'var(--shadow-sm)',
-				'md': 'var(--shadow-md)',
-				'lg': 'var(--shadow-lg)',
+				'premium': 'var(--shadow-premium)',
+				'elegant': 'var(--shadow-elegant)',
+				'subtle': 'var(--shadow-subtle)',
+			},
+			backgroundImage: {
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-accent': 'var(--gradient-accent)',
+				'gradient-hero': 'var(--gradient-hero)',
 			},
 			transitionTimingFunction: {
+				'premium': 'var(--transition-premium)',
 				'smooth': 'var(--transition-smooth)',
 			},
 			letterSpacing: {
-				'tight': '-0.02em',
-				'normal': '-0.005em',
+				'premium': '-0.025em',
+				'wide': '0.025em',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -112,18 +118,13 @@ export default {
 				fadeUp: {
 					from: {
 						opacity: '0',
-						transform: 'translateY(16px)'
+						transform: 'translateY(20px)'
 					},
 					to: {
 						opacity: '1',
 						transform: 'translateY(0)'
 					}
-				},
-				fadeIn: {
-					from: { opacity: '0' },
-					to: { opacity: '1' }
 				}
-			}
 			}
 		}
 	},
