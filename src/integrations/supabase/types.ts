@@ -311,8 +311,58 @@ export type Database = {
         }
         Relationships: []
       }
+      v_progress: {
+        Row: {
+          estimated_1rm: number | null
+          exercise_id: number | null
+          exercise_name: string | null
+          id: string | null
+          performed_at: string | null
+          reps: number | null
+          rir: number | null
+          user_id: string | null
+          volume: number | null
+          weight: number | null
+          workout_date: string | null
+          workout_exercise_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sets_workout_exercise_id_fkey"
+            columns: ["workout_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "workout_exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_core_lifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      analyze_progress: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       binary_quantize: {
         Args: { "": string } | { "": unknown }
         Returns: unknown

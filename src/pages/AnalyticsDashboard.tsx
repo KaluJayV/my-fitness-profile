@@ -92,32 +92,61 @@ const AnalyticsDashboard = () => {
 
   const calculateStats = async (userId: string) => {
     try {
-      // Get total workouts
-      const { count: workoutCount } = await supabase
+      // Manual count of workouts
+      const { data: workoutsData, error: workoutsError } = await supabase
         .from('workouts')
-        .select('*', { count: 'exact', head: true })
+        .select('id, programs!inner(user_id)')
         .eq('programs.user_id', userId)
         .not('workout_date', 'is', null);
 
-      // Get total sets
-      const { count: setsCount } = await supabase
+      // Manual count of sets  
+      const { data: setsData, error: setsError } = await supabase
         .from('sets')
-        .select('*', { count: 'exact', head: true })
+        .select(`
+          id, weight,
+          workout_exercises!inner(
+            workout_id,
+            workouts!inner(
+              program_id,
+              programs!inner(user_id)
+            )
+          )
+        `)
         .eq('workout_exercises.workouts.programs.user_id', userId);
 
-      // Calculate average weight progress (simplified)
+      // Calculate stats from the data
+      const totalWorkouts = workoutsData?.length || 0;
+      const totalSets = setsData?.length || 0;
+      
+      // Calculate average weight from sets data
+      const weights = setsData?.map(s => s.weight).filter(w => w != null) || [];
+      const avgWeightProgress = weights.length > 0 
+        ? weights.reduce((sum, weight) => sum + weight, 0) / weights.length 
+        : 0;
+
+      setStats({
+        totalWorkouts,
+        totalSets,
+        avgWeightProgress: Math.round(avgWeightProgress * 10) / 10,
+        completionRate: 85 // Placeholder
+      });
+
+      if (workoutsError) console.error('Workouts error:', workoutsError);
+      if (setsError) console.error('Sets error:', setsError);
+
+    } catch (error) {
+      console.error('Error calculating stats:', error);
+      // Set fallback values using progress data
       const avgWeightProgress = progressData.length > 0 
         ? progressData.reduce((sum, item) => sum + (item.avg_weight || 0), 0) / progressData.length 
         : 0;
 
       setStats({
-        totalWorkouts: workoutCount || 0,
-        totalSets: setsCount || 0,
+        totalWorkouts: 0,
+        totalSets: 0,
         avgWeightProgress: Math.round(avgWeightProgress * 10) / 10,
-        completionRate: 85 // Placeholder
+        completionRate: 85
       });
-    } catch (error) {
-      console.error('Error calculating stats:', error);
     }
   };
 

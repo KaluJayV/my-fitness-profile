@@ -35,7 +35,7 @@ serve(async (req) => {
       .from('v_progress')
       .select('*')
       .eq('user_id', user.id)
-      .order('week', { ascending: true });
+      .order('workout_date', { ascending: true });
 
     if (progressError) {
       console.error('Progress fetch error:', progressError);
@@ -85,36 +85,39 @@ serve(async (req) => {
 
     // Prepare data summary for AI analysis
     const progressSummary = progressData?.map(p => ({
-      exercise: p.exercise,
-      week: p.week,
-      avgWeight: p.avg_weight,
-      avgReps: p.avg_reps
+      exercise: p.exercise_name,
+      date: p.workout_date,
+      weight: p.weight,
+      reps: p.reps,
+      estimated1RM: p.estimated_1rm
     })) || [];
 
     const recentWorkouts = workoutsData?.length || 0;
     const totalSets = setsData?.length || 0;
     
-    // Calculate trends
+    // Calculate trends by exercise
     const exerciseProgress = {};
     progressData?.forEach(p => {
-      if (!exerciseProgress[p.exercise]) {
-        exerciseProgress[p.exercise] = [];
+      if (!exerciseProgress[p.exercise_name]) {
+        exerciseProgress[p.exercise_name] = [];
       }
-      exerciseProgress[p.exercise].push({
-        week: p.week,
-        weight: p.avg_weight,
-        reps: p.avg_reps
+      exerciseProgress[p.exercise_name].push({
+        date: p.workout_date,
+        weight: p.weight,
+        reps: p.reps,
+        estimated1RM: p.estimated_1rm
       });
     });
 
     const trends = Object.entries(exerciseProgress).map(([exercise, data]) => {
-      const sortedData = data.sort((a, b) => new Date(a.week) - new Date(b.week));
+      const sortedData = data.sort((a, b) => new Date(a.date) - new Date(b.date));
       if (sortedData.length >= 2) {
         const first = sortedData[0];
         const last = sortedData[sortedData.length - 1];
-        const weightChange = last.weight - first.weight;
-        const repsChange = last.reps - first.reps;
-        return { exercise, weightChange, repsChange, sessions: sortedData.length };
+        const weightChange = (last.weight || 0) - (first.weight || 0);
+        const repsChange = (last.reps || 0) - (first.reps || 0);
+        const est1rmChange = (last.estimated1RM || 0) - (first.estimated1RM || 0);
+        return { exercise, weightChange, repsChange, est1rmChange, sessions: sortedData.length };
       }
       return null;
     }).filter(Boolean);
@@ -127,10 +130,10 @@ serve(async (req) => {
 - Tracking ${Object.keys(exerciseProgress).length} different exercises
 
 **Progress Trends:**
-${trends.map(t => `- ${t.exercise}: ${t.weightChange > 0 ? '+' : ''}${t.weightChange?.toFixed(1)}kg weight change, ${t.repsChange > 0 ? '+' : ''}${t.repsChange?.toFixed(1)} reps change over ${t.sessions} sessions`).join('\n')}
+${trends.map(t => `- ${t.exercise}: ${t.weightChange > 0 ? '+' : ''}${t.weightChange?.toFixed(1)}kg weight change, ${t.repsChange > 0 ? '+' : ''}${t.repsChange?.toFixed(1)} reps change, ${t.est1rmChange > 0 ? '+' : ''}${t.est1rmChange?.toFixed(1)}kg 1RM change over ${t.sessions} sessions`).join('\n')}
 
-**Weekly Progress Data:**
-${progressSummary.slice(0, 10).map(p => `- ${p.exercise}: Week ${new Date(p.week).toLocaleDateString()}, Avg ${p.avgWeight}kg × ${p.avgReps} reps`).join('\n')}
+**Recent Progress Data:**
+${progressSummary.slice(0, 10).map(p => `- ${p.exercise}: ${new Date(p.date).toLocaleDateString()}, ${p.weight || 0}kg × ${p.reps || 0} reps (Est 1RM: ${p.estimated1RM?.toFixed(1) || 0}kg)`).join('\n')}
 
 Provide a markdown-formatted analysis covering:
 1. **Overall Progress** - Key achievements and improvements
