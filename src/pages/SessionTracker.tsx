@@ -268,6 +268,17 @@ const SessionTracker = () => {
 
       if (error) throw error;
 
+      // Mark the workout as completed
+      const { error: workoutError } = await supabase
+        .from('workouts')
+        .update({ completed: true })
+        .eq('id', workoutId);
+
+      if (workoutError) {
+        console.error('Error marking workout as completed:', workoutError);
+        // Don't fail the whole operation for this
+      }
+
       toast({
         title: "Session completed!",
         description: `Recorded ${setsToInsert.length} sets across ${exercises.length} exercises`

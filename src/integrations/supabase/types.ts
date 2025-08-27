@@ -264,18 +264,21 @@ export type Database = {
       }
       workouts: {
         Row: {
+          completed: boolean | null
           id: string
           json_plan: Json | null
           program_id: string | null
           workout_date: string | null
         }
         Insert: {
+          completed?: boolean | null
           id?: string
           json_plan?: Json | null
           program_id?: string | null
           workout_date?: string | null
         }
         Update: {
+          completed?: boolean | null
           id?: string
           json_plan?: Json | null
           program_id?: string | null
