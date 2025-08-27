@@ -42,7 +42,7 @@ serve(async (req) => {
       throw progressError;
     }
 
-    // Fetch user's workout history
+    // Fetch user's workout history - only completed workouts
     const { data: workoutsData, error: workoutsError } = await supabaseClient
       .from('workouts')
       .select(`
@@ -54,6 +54,7 @@ serve(async (req) => {
         )
       `)
       .eq('programs.user_id', user.id)
+      .eq('completed', true)
       .not('workout_date', 'is', null)
       .order('workout_date', { ascending: false })
       .limit(10);
