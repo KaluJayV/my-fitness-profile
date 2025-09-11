@@ -305,16 +305,16 @@ const WorkoutGenerator = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <AppHeader title="AI Workout Generator" showBack={true} />
+      <AppHeader title="AI Gym Program Generator" showBack={true} />
       
       <div className="container mx-auto p-4 lg:p-6">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold mb-2 flex items-center justify-center gap-3">
             <Sparkles className="h-8 w-8 text-primary" />
-            AI Workout Generator
+            AI Gym Program Generator
           </h1>
           <p className="text-xl text-muted-foreground">
-            Create personalized workout plans with AI assistance
+            Create personalized gym programs with AI assistance
           </p>
         </div>
 
@@ -339,7 +339,7 @@ const WorkoutGenerator = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Dumbbell className="h-5 w-5" />
-                  Describe Your Ideal Workout
+                  Describe Your Ideal Gym Program
                 </CardTitle>
                 <CardDescription>
                   Tell me about your fitness goals, preferred exercises, available time, and any specific requirements.
@@ -381,6 +381,24 @@ const WorkoutGenerator = () => {
                     </div>
                   </div>
                 </form>
+
+                <Separator className="my-6" />
+                
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2 flex items-center gap-2">
+                      <Settings className="h-5 w-5" />
+                      Program Modules
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Customize your program with optional modules. Each module will add time to your workouts.
+                    </p>
+                  </div>
+                  <WorkoutModuleConfigComponent 
+                    config={moduleConfig}
+                    onChange={setModuleConfig}
+                  />
+                </div>
 
                 {isGenerating && (
                   <Card className="border-primary/20 bg-primary/5">
@@ -431,25 +449,6 @@ const WorkoutGenerator = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="modules" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5" />
-                  Workout Module Configuration
-                </CardTitle>
-                <CardDescription>
-                  Customize your workout with optional modules like warmups, core finishers, and cooldowns
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <WorkoutModuleConfigComponent 
-                  config={moduleConfig}
-                  onChange={setModuleConfig}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="preview" className="space-y-6">
             {generatedWorkout && (
