@@ -9,7 +9,8 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AppHeader } from '@/components/AppHeader';
 import { VoiceInterface } from '@/components/VoiceInterface';
-import { GeneratedWorkout } from '@/components/GeneratedWorkout';
+import { ModularWorkoutDisplay } from '@/components/ModularWorkoutDisplay';
+import { WorkoutModuleConfigComponent } from '@/components/WorkoutModuleConfig';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -24,41 +25,16 @@ import {
   Target,
   Clock,
   Dumbbell,
-  Calendar
+  Calendar,
+  Settings,
+  Zap
 } from 'lucide-react';
-
-interface Exercise {
-  id: number;
-  name: string;
-  primary_muscles: string[];
-  gif_url?: string;
-}
-
-interface WorkoutExercise {
-  exercise_id: number;
-  exercise_name: string;
-  sets: number;
-  reps: string;
-  rest: string;
-  notes?: string;
-  primary_muscles: string[];
-}
-
-interface GeneratedWorkoutPlan {
-  id?: string;
-  name: string;
-  description: string;
-  duration_weeks: number;
-  days_per_week: number;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  goals: string[];
-  workouts: Array<{
-    day: string;
-    name: string;
-    description: string;
-    exercises: WorkoutExercise[];
-  }>;
-}
+import { 
+  Exercise, 
+  GeneratedWorkoutPlan, 
+  WorkoutModuleConfig, 
+  WorkoutGenerationRequest 
+} from '@/types/workout';
 
 const WorkoutGenerator = () => {
   const { toast } = useToast();
@@ -75,6 +51,30 @@ const WorkoutGenerator = () => {
     timestamp: Date;
     workout?: GeneratedWorkoutPlan;
   }>>([]);
+  
+  // Default module configuration
+  const [moduleConfig, setModuleConfig] = useState<WorkoutModuleConfig>({
+    warmup: {
+      enabled: false,
+      duration_minutes: 10,
+      type: 'dynamic',
+    },
+    main: {
+      enabled: true,
+      duration_minutes: 45,
+    },
+    core: {
+      enabled: false,
+      duration_minutes: 10,
+      intensity: 'moderate',
+      style: 'mixed',
+    },
+    cooldown: {
+      enabled: false,
+      duration_minutes: 10,
+      type: 'stretching',
+    },
+  });
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -431,9 +431,29 @@ const WorkoutGenerator = () => {
             </Card>
           </TabsContent>
 
+          <TabsContent value="modules" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Workout Module Configuration
+                </CardTitle>
+                <CardDescription>
+                  Customize your workout with optional modules like warmups, core finishers, and cooldowns
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <WorkoutModuleConfigComponent 
+                  config={moduleConfig}
+                  onChange={setModuleConfig}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="preview" className="space-y-6">
             {generatedWorkout && (
-              <GeneratedWorkout 
+              <ModularWorkoutDisplay 
                 workout={generatedWorkout}
                 onRevision={handleRevision}
                 onSave={saveWorkout}
@@ -505,11 +525,11 @@ const WorkoutGenerator = () => {
                                   <div className="mt-2">
                                     <p className="text-xs font-medium">Workouts:</p>
                                     <div className="space-y-1 mt-1">
-                                      {message.workout.workouts.map((workout, workoutIndex) => (
-                                        <div key={workoutIndex} className="text-xs">
-                                          <span className="font-medium">{workout.day}:</span> {workout.name} 
-                                          <span className="opacity-70"> ({workout.exercises.length} exercises)</span>
-                                        </div>
+                                       {message.workout.workouts.map((workout, workoutIndex) => (
+                                         <div key={workoutIndex} className="text-xs">
+                                           <span className="font-medium">{workout.day}:</span> {workout.name} 
+                                           <span className="opacity-70"> ({workout.modules.length} modules)</span>
+                                         </div>
                                       ))}
                                     </div>
                                   </div>
