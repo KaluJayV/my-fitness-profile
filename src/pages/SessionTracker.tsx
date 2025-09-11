@@ -4,11 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Check, ArrowLeft, Timer } from "lucide-react";
+import { Plus, Check, ArrowLeft, Timer, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ExerciseSetTable } from "@/components/ExerciseSetTable";
 import { WorkoutVoiceInput } from "@/components/WorkoutVoiceInput";
+import { WorkoutAssistant } from "@/components/WorkoutAssistant";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Set {
@@ -21,6 +22,7 @@ interface Set {
 interface Exercise {
   id: number;
   name: string;
+  primary_muscles: string[];
   workout_exercise_id?: string;
   sets: Set[];
   planData?: {
@@ -46,17 +48,39 @@ const SessionTracker = () => {
   const navigate = useNavigate();
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [exerciseLibrary, setExerciseLibrary] = useState<Array<{
+    id: number;
+    name: string;
+    primary_muscles: string[];
+  }>>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sessionStartTime] = useState(new Date());
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const [selectedExerciseIndex, setSelectedExerciseIndex] = useState<number | null>(null);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
   useEffect(() => {
     if (workoutId) {
       fetchWorkout();
+      fetchExerciseLibrary();
     }
   }, [workoutId]);
+
+  const fetchExerciseLibrary = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('id, name, primary_muscles')
+        .order('name');
+
+      if (error) throw error;
+      setExerciseLibrary(data || []);
+    } catch (error) {
+      console.error('Error fetching exercise library:', error);
+    }
+  };
 
   const fetchWorkout = async () => {
     try {
@@ -138,6 +162,7 @@ const SessionTracker = () => {
         return {
           id: planExercise.exercise_id || planExercise.id,
           name: planExercise.exercise_name || planExercise.name || planExercise.exercise?.name || `Exercise ${index + 1}`,
+          primary_muscles: planExercise.primary_muscles || [],
           workout_exercise_id: workoutExercise.id,
           sets: initialSets,
           planData: {
@@ -308,6 +333,65 @@ const SessionTracker = () => {
     return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
   };
 
+  const handleExerciseSubstitution = async (
+    exerciseIndex: number, 
+    newExercise: { id: number; name: string; primary_muscles: string[] },
+    reason: string
+  ) => {
+    try {
+      const originalExercise = exercises[exerciseIndex];
+      
+      // Create a new workout_exercise entry for the substituted exercise
+      const { data: newWorkoutExercise, error } = await supabase
+        .from('workout_exercises')
+        .insert({
+          workout_id: workout!.id,
+          exercise_id: newExercise.id,
+          position: originalExercise.workout_exercise_id ? 
+            exercises.length + exerciseIndex : // Use a new position if substituting
+            exerciseIndex
+        })
+        .select('id')
+        .single();
+
+      if (error) throw error;
+
+      // Update the exercise in the local state with the new exercise details
+      setExercises(prev => prev.map((exercise, index) => 
+        index === exerciseIndex 
+          ? { 
+              ...exercise,
+              id: newExercise.id,
+              name: newExercise.name,
+              workout_exercise_id: newWorkoutExercise.id,
+              planData: {
+                ...exercise.planData!,
+                primary_muscles: newExercise.primary_muscles
+              }
+            }
+          : exercise
+      ));
+
+      toast({
+        title: "Exercise substituted",
+        description: `Switched from ${originalExercise.name} to ${newExercise.name}`,
+      });
+
+    } catch (error) {
+      console.error('Error substituting exercise:', error);
+      toast({
+        title: "Error",
+        description: "Failed to substitute exercise. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const openAssistant = (exerciseIndex: number) => {
+    setSelectedExerciseIndex(exerciseIndex);
+    setAssistantOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background p-4">
@@ -384,9 +468,20 @@ const SessionTracker = () => {
                 <CardTitle className={`${isMobile ? 'text-base' : 'text-lg'}`}>
                   {exercise.name}
                 </CardTitle>
-                <Badge variant="outline" className={isMobile ? 'text-xs' : ''}>
-                  {exercise.sets.length} set{exercise.sets.length !== 1 ? 's' : ''}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openAssistant(exerciseIndex)}
+                    className={isMobile ? "h-8 px-2" : ""}
+                  >
+                    <MessageCircle className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} mr-1`} />
+                    {!isMobile && 'Modify'}
+                  </Button>
+                  <Badge variant="outline" className={isMobile ? 'text-xs' : ''}>
+                    {exercise.sets.length} set{exercise.sets.length !== 1 ? 's' : ''}
+                  </Badge>
+                </div>
               </div>
               {exercise.planData && (
                 <div className={`space-y-1 text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>
@@ -446,6 +541,19 @@ const SessionTracker = () => {
             onDataReceived={handleVoiceData}
           />
         </div>
+      )}
+
+      {/* Workout Assistant */}
+      {selectedExerciseIndex !== null && (
+        <WorkoutAssistant
+          open={assistantOpen}
+          onOpenChange={setAssistantOpen}
+          currentExercise={exercises[selectedExerciseIndex]}
+          exerciseLibrary={exerciseLibrary}
+          onExerciseSubstitute={(newExercise, reason) => 
+            handleExerciseSubstitution(selectedExerciseIndex, newExercise, reason)
+          }
+        />
       )}
 
       {/* Floating Finish Button */}
