@@ -166,7 +166,7 @@ export const ModularWorkoutDisplay: React.FC<ModularWorkoutDisplayProps> = ({
 
             {/* Workout Modules */}
             <div className="space-y-4">
-              {day.modules
+{(day.modules || [])
                 .sort((a, b) => a.order - b.order)
                 .map((module, moduleIndex) => (
                   <Card key={moduleIndex} className={getModuleColor(module.type)}>
