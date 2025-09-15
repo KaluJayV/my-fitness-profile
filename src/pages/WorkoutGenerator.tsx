@@ -513,23 +513,23 @@ const WorkoutGenerator = () => {
                                   <div className="mt-2">
                                     <p className="text-xs font-medium">Goals:</p>
                                     <div className="flex gap-1 mt-1 flex-wrap">
-                                      {message.workout.goals.map((goal, goalIndex) => (
-                                        <Badge key={goalIndex} variant="outline" className="text-xs">
-                                          {goal}
-                                        </Badge>
-                                      ))}
+{message.workout.goals?.map((goal, goalIndex) => (
+  <Badge key={goalIndex} variant="outline" className="text-xs">
+    {goal}
+  </Badge>
+))}
                                     </div>
                                   </div>
                                   
                                   <div className="mt-2">
                                     <p className="text-xs font-medium">Workouts:</p>
                                     <div className="space-y-1 mt-1">
-                                       {message.workout.workouts.map((workout, workoutIndex) => (
-                                         <div key={workoutIndex} className="text-xs">
-                                           <span className="font-medium">{workout.day}:</span> {workout.name} 
-                                           <span className="opacity-70"> ({workout.modules.length} modules)</span>
-                                         </div>
-                                      ))}
+{message.workout.workouts?.map((workout, workoutIndex) => (
+  <div key={workoutIndex} className="text-xs">
+    <span className="font-medium">{workout.day}:</span> {workout.name} 
+    <span className="opacity-70"> ({workout.modules?.length ?? 0} modules)</span>
+  </div>
+))}
                                     </div>
                                   </div>
                                   
