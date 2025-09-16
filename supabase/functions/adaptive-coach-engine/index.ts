@@ -189,21 +189,35 @@ Question:`;
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-5-2025-08-07',
+      model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: 'Generate adaptive question.' }
       ],
-      max_completion_tokens: 200,
+      max_tokens: 200,
+      temperature: 0.7,
     }),
   });
 
   if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.statusText}`);
+    const errorText = await response.text();
+    console.error('OpenAI API error:', response.status, response.statusText, errorText);
+    throw new Error(`OpenAI API error: ${response.statusText} - ${errorText}`);
   }
 
   const completion = await response.json();
-  return completion.choices[0].message.content.trim();
+  console.log('OpenAI response:', JSON.stringify(completion, null, 2));
+  
+  if (!completion.choices || completion.choices.length === 0) {
+    throw new Error('No response from OpenAI API');
+  }
+  
+  const content = completion.choices[0].message?.content;
+  if (!content) {
+    throw new Error('Empty response from OpenAI API');
+  }
+  
+  return content.trim();
 }
 
 async function assessConversationQuality(
@@ -258,23 +272,56 @@ Return JSON:
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-5-mini-2025-08-07',
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: 'Assess conversation quality.' }
       ],
-      max_completion_tokens: 400,
+      max_tokens: 400,
+      temperature: 0.3,
     }),
   });
 
   if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.statusText}`);
+    const errorText = await response.text();
+    console.error('OpenAI API error:', response.status, response.statusText, errorText);
+    // Return fallback quality assessment
+    return {
+      score: 6,
+      factors: { depth: 6, relevance: 6, engagement: 6, clarity: 6 },
+      suggestions: ["Continue with more specific questions"],
+      shouldContinue: true
+    };
   }
 
   const completion = await response.json();
+  console.log('OpenAI response:', JSON.stringify(completion, null, 2));
+  
+  if (!completion.choices || completion.choices.length === 0) {
+    console.error('No response from OpenAI API');
+    return {
+      score: 6,
+      factors: { depth: 6, relevance: 6, engagement: 6, clarity: 6 },
+      suggestions: ["Continue with more specific questions"],
+      shouldContinue: true
+    };
+  }
+  
+  const content = completion.choices[0].message?.content;
+  if (!content) {
+    console.error('Empty response from OpenAI API');
+    return {
+      score: 6,
+      factors: { depth: 6, relevance: 6, engagement: 6, clarity: 6 },
+      suggestions: ["Continue with more specific questions"],
+      shouldContinue: true
+    };
+  }
+  
   try {
-    return JSON.parse(completion.choices[0].message.content.trim());
+    return JSON.parse(content.trim());
   } catch (e) {
+    console.error('Failed to parse JSON response:', e);
     // Fallback if JSON parsing fails
     return {
       score: 6,
@@ -319,21 +366,35 @@ Keep it concise but comprehensive - this will be used to generate their workout 
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-5-mini-2025-08-07',
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: 'Generate consultation summary.' }
       ],
-      max_completion_tokens: 500,
+      max_tokens: 500,
+      temperature: 0.5,
     }),
   });
 
   if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.statusText}`);
+    const errorText = await response.text();
+    console.error('OpenAI API error:', response.status, response.statusText, errorText);
+    throw new Error(`OpenAI API error: ${response.statusText} - ${errorText}`);
   }
 
   const completion = await response.json();
-  return completion.choices[0].message.content.trim();
+  console.log('OpenAI response:', JSON.stringify(completion, null, 2));
+  
+  if (!completion.choices || completion.choices.length === 0) {
+    throw new Error('No response from OpenAI API');
+  }
+  
+  const content = completion.choices[0].message?.content;
+  if (!content) {
+    throw new Error('Empty response from OpenAI API');
+  }
+  
+  return content.trim();
 }
 
 async function generateSmartFollowup(
@@ -372,19 +433,33 @@ Keep it concise (1-2 sentences) and natural.`;
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-5-nano-2025-08-07',
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: 'Generate smart followup.' }
       ],
-      max_completion_tokens: 150,
+      max_tokens: 150,
+      temperature: 0.7,
     }),
   });
 
   if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.statusText}`);
+    const errorText = await response.text();
+    console.error('OpenAI API error:', response.status, response.statusText, errorText);
+    throw new Error(`OpenAI API error: ${response.statusText} - ${errorText}`);
   }
 
   const completion = await response.json();
-  return completion.choices[0].message.content.trim();
+  console.log('OpenAI response:', JSON.stringify(completion, null, 2));
+  
+  if (!completion.choices || completion.choices.length === 0) {
+    throw new Error('No response from OpenAI API');
+  }
+  
+  const content = completion.choices[0].message?.content;
+  if (!content) {
+    throw new Error('Empty response from OpenAI API');
+  }
+  
+  return content.trim();
 }

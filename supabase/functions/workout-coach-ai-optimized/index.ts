@@ -271,8 +271,8 @@ async function generateOptimizedQuestion(
   existingInsights: string[]
 ): Promise<string> {
   
-  // Use efficient model selection
-  const model = questionCount < 3 ? 'gpt-5-mini-2025-08-07' : 'gpt-5-nano-2025-08-07';
+  // Use valid OpenAI models
+  const model = questionCount < 3 ? 'gpt-4o-mini' : 'gpt-4o-mini';
   
   // Summarize conversation for token efficiency
   const conversationSummary = summarizeConversation(conversation);
@@ -305,16 +305,30 @@ Ask a personalized question focusing on their specific situation. Be concise and
         { role: 'system', content: systemPrompt },
         { role: 'user', content: 'Generate next question.' }
       ],
-      max_completion_tokens: 150,
+      max_tokens: 150,
+      temperature: 0.7,
     }),
   });
 
   if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.statusText}`);
+    const errorText = await response.text();
+    console.error('OpenAI API error:', response.status, response.statusText, errorText);
+    throw new Error(`OpenAI API error: ${response.statusText} - ${errorText}`);
   }
 
   const completion = await response.json();
-  return completion.choices[0].message.content.trim();
+  console.log('OpenAI response:', JSON.stringify(completion, null, 2));
+  
+  if (!completion.choices || completion.choices.length === 0) {
+    throw new Error('No response from OpenAI API');
+  }
+  
+  const content = completion.choices[0].message?.content;
+  if (!content) {
+    throw new Error('Empty response from OpenAI API');
+  }
+  
+  return content.trim();
 }
 
 async function analyzeUserResponseOptimized(
@@ -341,21 +355,35 @@ Provide 1-2 concise insights for program design.`;
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-5-nano-2025-08-07',
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: 'Analyze response.' }
       ],
-      max_completion_tokens: 200,
+      max_tokens: 200,
+      temperature: 0.7,
     }),
   });
 
   if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.statusText}`);
+    const errorText = await response.text();
+    console.error('OpenAI API error:', response.status, response.statusText, errorText);
+    throw new Error(`OpenAI API error: ${response.statusText} - ${errorText}`);
   }
 
   const completion = await response.json();
-  return completion.choices[0].message.content.trim();
+  console.log('OpenAI response:', JSON.stringify(completion, null, 2));
+  
+  if (!completion.choices || completion.choices.length === 0) {
+    throw new Error('No response from OpenAI API');
+  }
+  
+  const content = completion.choices[0].message?.content;
+  if (!content) {
+    throw new Error('Empty response from OpenAI API');
+  }
+  
+  return content.trim();
 }
 
 async function buildOptimizedMasterPrompt(
@@ -393,21 +421,35 @@ Be comprehensive but concise.`;
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-5-2025-08-07',
+      model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: 'Create master prompt.' }
       ],
-      max_completion_tokens: 800,
+      max_tokens: 800,
+      temperature: 0.7,
     }),
   });
 
   if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.statusText}`);
+    const errorText = await response.text();
+    console.error('OpenAI API error:', response.status, response.statusText, errorText);
+    throw new Error(`OpenAI API error: ${response.statusText} - ${errorText}`);
   }
 
   const completion = await response.json();
-  return completion.choices[0].message.content.trim();
+  console.log('OpenAI response:', JSON.stringify(completion, null, 2));
+  
+  if (!completion.choices || completion.choices.length === 0) {
+    throw new Error('No response from OpenAI API');
+  }
+  
+  const content = completion.choices[0].message?.content;
+  if (!content) {
+    throw new Error('Empty response from OpenAI API');
+  }
+  
+  return content.trim();
 }
 
 function summarizeConversation(conversation: any[]): string {

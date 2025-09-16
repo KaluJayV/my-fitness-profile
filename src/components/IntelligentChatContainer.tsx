@@ -125,7 +125,15 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(`Function call failed: ${error.message}`);
+      }
+
+      if (!data || !data.question) {
+        console.error('Empty response from function:', data);
+        throw new Error('Received empty response from AI service');
+      }
 
       const assistantMessage: ChatMessage = {
         type: 'assistant',
@@ -142,13 +150,21 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
       }));
       setSessionId(data.sessionId);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating question:', error);
       
-      // Fallback to basic question
+      // Show detailed error message to help with debugging
+      const errorMessage = error?.message || 'Unknown error occurred';
+      toast({
+        title: "AI Coach Error",
+        description: `Failed to generate question: ${errorMessage}`,
+        variant: "destructive",
+      });
+      
+      // Fallback to basic question with error context
       const fallbackMessage: ChatMessage = {
         type: 'assistant',
-        content: "What specific muscle groups are you most interested in developing, and are there any exercises you particularly enjoy or want to avoid?",
+        content: "I'm having trouble connecting to the AI service right now. Let me ask you a basic question: What specific muscle groups are you most interested in developing, and are there any exercises you particularly enjoy or want to avoid?",
         timestamp: new Date()
       };
       setChatMessages(prev => [...prev, fallbackMessage]);
@@ -188,8 +204,13 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
         insights: [...prev.insights, data.analysis]
       }));
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error analyzing response:', error);
+      toast({
+        title: "Analysis Warning",
+        description: "Failed to analyze your response, but we'll continue with the conversation.",
+        variant: "default",
+      });
     }
   }, [userId, initialPreferences, chatMessages, sessionId]);
 
@@ -223,8 +244,9 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
           conversationQuality: data.quality
         }));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error assessing conversation quality:', error);
+      // Continue without quality assessment - not critical
     }
   }, [userId, sessionId, initialPreferences, chatMessages, chatState.questionCount, chatState.maxQuestions, chatState.phase]);
 
@@ -250,7 +272,15 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
         }
       });
 
-      if (masterError) throw masterError;
+      if (masterError) {
+        console.error('Master prompt error:', masterError);
+        throw new Error(`Failed to build master prompt: ${masterError.message}`);
+      }
+
+      if (!masterData || !masterData.masterPrompt) {
+        console.error('Empty master prompt response:', masterData);
+        throw new Error('Received empty master prompt from AI service');
+      }
 
       const generatingMessage: ChatMessage = {
         type: 'assistant',
@@ -268,7 +298,15 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
         }
       });
 
-      if (workoutError) throw workoutError;
+      if (workoutError) {
+        console.error('Workout generation error:', workoutError);
+        throw new Error(`Failed to generate workout: ${workoutError.message}`);
+      }
+
+      if (!workoutData || !workoutData.workout) {
+        console.error('Empty workout response:', workoutData);
+        throw new Error('Received empty workout plan from AI service');
+      }
 
       const completionMessage: ChatMessage = {
         type: 'assistant',
@@ -288,17 +326,19 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
 
     } catch (error: any) {
       console.error('Error generating workout:', error);
+      
+      const errorDetails = error?.message || 'Unknown error occurred';
       const errorMessage: ChatMessage = {
         type: 'assistant',
-        content: "I apologize, but there was an error creating your workout plan. Let me try with a simplified approach...",
+        content: `I apologize, but I encountered an issue creating your workout plan: ${errorDetails}. Please try again or contact support if the problem persists.`,
         timestamp: new Date()
       };
       setChatMessages(prev => [...prev, errorMessage]);
-      setChatState(prev => ({ ...prev, isProcessing: false }));
+      setChatState(prev => ({ ...prev, phase: 'questioning', isProcessing: false }));
       
       toast({
-        title: "Error",
-        description: "Failed to generate workout plan. Please try again.",
+        title: "Workout Generation Failed",
+        description: `Error: ${errorDetails}`,
         variant: "destructive",
       });
     }
