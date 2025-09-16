@@ -505,13 +505,13 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
       )}
 
       {/* Chat Interface */}
-      <Card className="h-[500px] flex flex-col animate-fade-in shadow-lg">
-        <CardContent className="flex-1 flex flex-col p-0">
+      <Card className="flex flex-col animate-fade-in shadow-lg min-h-[60vh] max-h-[70vh]">
+        <CardContent className="flex-1 flex flex-col p-0 min-h-0">
           <ChatMessageList 
             messages={chatMessages} 
             isProcessing={chatState.isProcessing}
           />
-          <div className="border-t p-4 bg-muted/30">
+          <div className="border-t p-4 bg-muted/30 flex-shrink-0">
             <ChatInput
               ref={textareaRef}
               onSend={handleChatResponse}

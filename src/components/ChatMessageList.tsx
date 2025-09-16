@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { User, Bot, Loader2, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -79,58 +80,60 @@ export const ChatMessageList = React.memo<ChatMessageListProps>(({ messages, isP
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages, isProcessing]);
 
   return (
-    <div className="flex-1 overflow-hidden">
-      <div className="h-full overflow-y-auto p-4 space-y-4">
-        {messages.map((message, index) => (
-          <MessageBubble key={`${message.timestamp.getTime()}-${index}`} message={message} />
-        ))}
-        
-        {isProcessing && (
-          <div className="flex gap-3 justify-start">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                <Bot className="h-4 w-4 text-primary-foreground" />
+    <div className="flex-1 min-h-0">
+      <ScrollArea className="h-full">
+        <div className="p-4 space-y-4">
+          {messages.map((message, index) => (
+            <MessageBubble key={`${message.timestamp.getTime()}-${index}`} message={message} />
+          ))}
+          
+          {isProcessing && (
+            <div className="flex gap-3 justify-start animate-fade-in">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                  <Bot className="h-4 w-4 text-primary-foreground" />
+                </div>
+              </div>
+              <div className="flex-1 max-w-[80%]">
+                <Card className="bg-muted">
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm text-muted-foreground">Thinking...</span>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
-            <div className="flex-1 max-w-[80%]">
-              <Card className="bg-muted">
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm text-muted-foreground">Thinking...</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
-        
-        {hasError && errorMessage && (
-          <div className="flex gap-3 justify-start">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 rounded-full bg-destructive flex items-center justify-center">
-                <AlertTriangle className="h-4 w-4 text-destructive-foreground" />
+          )}
+          
+          {hasError && errorMessage && (
+            <div className="flex gap-3 justify-start animate-fade-in">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 rounded-full bg-destructive flex items-center justify-center">
+                  <AlertTriangle className="h-4 w-4 text-destructive-foreground" />
+                </div>
+              </div>
+              <div className="flex-1 max-w-[80%]">
+                <Card className="bg-destructive/10 border-destructive/20">
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-destructive" />
+                      <span className="text-sm text-destructive">{errorMessage}</span>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
-            <div className="flex-1 max-w-[80%]">
-              <Card className="bg-destructive/10 border-destructive/20">
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-destructive" />
-                    <span className="text-sm text-destructive">{errorMessage}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        )}
-        
-        <div ref={chatEndRef} />
-      </div>
+          )}
+          
+          <div ref={chatEndRef} />
+        </div>
+      </ScrollArea>
     </div>
   );
 });
