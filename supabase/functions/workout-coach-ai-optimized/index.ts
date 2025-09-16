@@ -276,22 +276,25 @@ async function generateOptimizedQuestion(
   
   // Summarize conversation for token efficiency
   const conversationSummary = summarizeConversation(conversation);
-  const analyticsContext = buildCompactAnalyticsContext(analytics);
+  const dataProfile = buildDataDrivenProfile(analytics, preferences);
   
-  const systemPrompt = `You are an expert AI fitness coach. Ask ONE specific question to personalize their workout.
+  const systemPrompt = `You are an expert AI fitness coach. Ask ONE strategic question based ONLY on available user data.
 
-USER PROFILE:
-Goal: ${preferences.goal}, ${preferences.daysPerWeek}x/week, ${preferences.sessionLength}min sessions
-Equipment: ${preferences.equipment}, Experience: ${preferences.experience}
-${preferences.injuries ? `Injuries: ${preferences.injuries}` : ''}
+CRITICAL RULES:
+- ONLY ask about things you can see in the data below
+- NEVER assume lifestyle factors (stress, family, schedule) unless mentioned in their profile
+- Focus on training-specific insights that can't be inferred from performance data
+- Reference specific data points when asking questions
 
-${analyticsContext}
+${dataProfile}
 
-CONVERSATION: ${conversationSummary}
-INSIGHTS: ${existingInsights.slice(-2).join(' ')}
-PROGRESS: ${questionCount}/${maxQuestions}
+CONVERSATION HISTORY: ${conversationSummary}
+EXISTING INSIGHTS: ${existingInsights.slice(-2).join(' ')}
+QUESTION ${questionCount + 1}/${maxQuestions}
 
-Ask a personalized question focusing on their specific situation. Be concise and targeted.`;
+${getQuestionStrategy(analytics, preferences, questionCount)}
+
+Ask ONE targeted question that builds on the available data to better understand their training preferences and help create a more personalized program.`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -339,14 +342,28 @@ async function analyzeUserResponseOptimized(
 ): Promise<string> {
   
   const latestResponse = conversation[conversation.length - 1]?.content || '';
+  const latestQuestion = conversation[conversation.length - 2]?.content || '';
   
-  const systemPrompt = `Extract key insights from this user response for their workout program:
+  const systemPrompt = `Analyze this user response to extract actionable workout program insights:
 
-USER: "${latestResponse}"
-GOAL: ${preferences.goal}
-PREVIOUS INSIGHTS: ${existingInsights.slice(-2).join(' ')}
+QUESTION ASKED: "${latestQuestion}"
+USER RESPONSE: "${latestResponse}"
 
-Provide 1-2 concise insights for program design.`;
+USER PROFILE:
+- Goal: ${preferences.goal}
+- Equipment: ${preferences.equipment}
+- Experience: ${preferences.experience}
+${preferences.injuries ? `- Injuries: ${preferences.injuries}` : ''}
+
+PREVIOUS INSIGHTS: ${existingInsights.slice(-2).join(' | ')}
+
+Extract 1-2 specific, actionable insights that will influence:
+- Exercise selection and progression
+- Training structure and intensity
+- Program periodization
+- Recovery considerations
+
+Focus on concrete preferences and constraints, not personality assumptions.`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -485,4 +502,89 @@ function buildCompactAnalyticsContext(analytics: UserAnalytics): string {
   }
 
   return context || "New user - no training history.";
+}
+
+function buildDataDrivenProfile(analytics: UserAnalytics, preferences: any): string {
+  let profile = `USER PROFILE:\n`;
+  profile += `- Goal: ${preferences.goal}\n`;
+  profile += `- Schedule: ${preferences.daysPerWeek}x/week, ${preferences.sessionLength}min sessions\n`;
+  profile += `- Equipment: ${preferences.equipment}\n`;
+  profile += `- Experience: ${preferences.experience}\n`;
+  if (preferences.injuries) {
+    profile += `- Injuries: ${preferences.injuries}\n`;
+  }
+
+  profile += `\nWORKOUT DATA:\n`;
+  if (analytics.workoutFrequency) {
+    const freq = analytics.workoutFrequency;
+    profile += `- Total workouts: ${freq.total_workouts}\n`;
+    profile += `- Average frequency: ${freq.avg_workouts_per_week}/week\n`;
+    profile += `- Current streak: ${freq.current_streak} days\n`;
+    profile += `- Longest streak: ${freq.longest_streak} days\n`;
+    if (freq.last_workout_date) {
+      profile += `- Last workout: ${freq.last_workout_date}\n`;
+    }
+  } else {
+    profile += `- New user with no workout history\n`;
+  }
+
+  if (analytics.coreLifts.length > 0) {
+    profile += `\nSTRENGTH DATA:\n`;
+    analytics.coreLifts.forEach(lift => {
+      profile += `- ${lift.exercise_name}: ${lift.current_1rm?.toFixed(0)}kg`;
+      if (lift.improvement_30d && lift.improvement_30d > 0) {
+        profile += ` (+${lift.improvement_30d.toFixed(0)}kg in 30d)`;
+      }
+      profile += `\n`;
+    });
+  }
+
+  if (analytics.exerciseHistory.length > 0) {
+    profile += `\nEXERCISE PATTERNS:\n`;
+    analytics.exerciseHistory.slice(0, 5).forEach(ex => {
+      profile += `- ${ex.exercise_name}: ${ex.total_sets} sets, avg ${ex.avg_weight?.toFixed(0)}kg x ${ex.avg_reps?.toFixed(0)}\n`;
+    });
+  }
+
+  return profile;
+}
+
+function getQuestionStrategy(analytics: UserAnalytics, preferences: any, questionCount: number): string {
+  // Determine user type based on data
+  const isNewUser = !analytics.workoutFrequency || analytics.workoutFrequency.total_workouts === 0;
+  const isInconsistent = analytics.workoutFrequency && analytics.workoutFrequency.avg_workouts_per_week < 2;
+  const hasStrongLifts = analytics.coreLifts.some(lift => lift.current_1rm && lift.current_1rm > 100);
+  const hasImbalances = analytics.coreLifts.length > 1 && 
+    Math.max(...analytics.coreLifts.map(l => l.current_1rm || 0)) / 
+    Math.min(...analytics.coreLifts.filter(l => l.current_1rm).map(l => l.current_1rm)) > 1.5;
+
+  if (questionCount === 0) {
+    if (isNewUser) {
+      return "STRATEGY: Validate their stated goal and understand their specific preferences since they have no training history.";
+    } else if (isInconsistent) {
+      return "STRATEGY: They have inconsistent training frequency. Ask about barriers to consistency or preferred workout structure.";
+    } else if (hasImbalances) {
+      return "STRATEGY: Their strength data shows imbalances. Ask about their awareness of this and preferences for addressing it.";
+    } else {
+      return "STRATEGY: They have solid training data. Ask about progression preferences or satisfaction with current approach.";
+    }
+  }
+
+  if (questionCount === 1) {
+    if (analytics.exerciseHistory.length > 0) {
+      const favoriteTypes = analytics.exerciseHistory.slice(0, 3).map(ex => ex.exercise_name).join(', ');
+      return `STRATEGY: They've done mostly: ${favoriteTypes}. Ask about variety preferences or specific exercise likes/dislikes.`;
+    }
+    return "STRATEGY: Dig deeper into their training philosophy or periodization preferences.";
+  }
+
+  if (questionCount === 2) {
+    return "STRATEGY: Focus on program structure preferences - intensity vs volume, progression style, or recovery needs.";
+  }
+
+  if (questionCount === 3) {
+    return "STRATEGY: Address any remaining gaps in understanding their specific training preferences or constraints.";
+  }
+
+  return "STRATEGY: Final clarification on any important program design factors.";
 }
