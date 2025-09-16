@@ -515,20 +515,15 @@ Create a detailed workout program that addresses all their needs and preferences
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Primary Goal *</label>
-              <Select value={formData.goal} onValueChange={(value) => setFormData(prev => ({ ...prev, goal: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your main fitness goal" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="muscle_gain">Build Muscle</SelectItem>
-                  <SelectItem value="fat_loss">Lose Fat</SelectItem>
-                  <SelectItem value="strength">Build Strength</SelectItem>
-                  <SelectItem value="muscle_gain_fat_loss">Build Muscle & Lose Fat</SelectItem>
-                  <SelectItem value="endurance">Improve Endurance</SelectItem>
-                  <SelectItem value="general_fitness">General Fitness</SelectItem>
-                  <SelectItem value="athletic_performance">Athletic Performance</SelectItem>
-                </SelectContent>
-              </Select>
+              <Textarea
+                placeholder="Describe your fitness goals in detail... e.g., 'I want to build lean muscle while losing body fat, focusing on upper body strength and improving my overall conditioning for basketball'"
+                value={formData.goal}
+                onChange={(e) => setFormData(prev => ({ ...prev, goal: e.target.value }))}
+                className="min-h-[80px] resize-none"
+              />
+              <p className="text-xs text-muted-foreground">
+                Be specific about what you want to achieve - the more detail, the better your program will be
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
