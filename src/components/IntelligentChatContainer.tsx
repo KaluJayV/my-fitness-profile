@@ -3,6 +3,7 @@ import { ChatMessageList } from './ChatMessageList';
 import { ChatInput } from './ChatInput';
 import { AIInsightPanel } from './AIInsightPanel';
 import { ConversationQualityDisplay } from './ConversationQualityDisplay';
+import { PerformanceMonitor } from './PerformanceMonitor';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -370,6 +371,18 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
 
   return (
     <div className="space-y-4">
+      {/* Performance Monitor */}
+      {userId && sessionId && (
+        <PerformanceMonitor 
+          userId={userId}
+          sessionId={sessionId}
+          isVisible={chatState.phase === 'questioning' && chatState.questionCount >= 1}
+          onMetricTracked={(metric, value) => {
+            console.log('Metric tracked:', metric, value);
+          }}
+        />
+      )}
+
       {/* AI Insights Panel */}
       {userId && chatState.phase === 'questioning' && (
         <AIInsightPanel 
@@ -385,15 +398,15 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
         isVisible={chatState.phase === 'questioning' && chatState.questionCount >= 3}
       />
 
-      {/* Progress Header */}
-      <Card className="border-primary/20">
+      {/* Progress Header with enhanced animations */}
+      <Card className="border-primary/20 animate-fade-in hover:shadow-lg transition-all duration-300">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Brain className="h-5 w-5 text-primary" />
               <CardTitle className="text-lg">AI Fitness Coach</CardTitle>
               {chatState.phase === 'complete' && (
-                <Badge variant="secondary" className="ml-2">
+                <Badge variant="secondary" className="ml-2 animate-pulse-glow">
                   <Sparkles className="h-3 w-3 mr-1" />
                   Complete
                 </Badge>
@@ -401,9 +414,9 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
             </div>
             
             {chatState.phase !== 'complete' && (
-              <div className="text-right">
+              <div className="text-right animate-fade-in">
                 <div className="text-sm font-medium">{Math.round(progressPercentage)}%</div>
-                <Progress value={progressPercentage} className="w-20 h-2" />
+                <Progress value={progressPercentage} className="w-20 h-2 transition-all duration-500" />
               </div>
             )}
           </div>
@@ -417,7 +430,7 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
 
       {/* Insights Panel */}
       {chatState.insights.length > 0 && (
-        <Card className="border-secondary/20 bg-secondary/5">
+        <Card className="border-secondary/20 bg-secondary/5 animate-scale-in">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
               <Target className="h-4 w-4" />
@@ -427,7 +440,7 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
           <CardContent className="pt-0">
             <div className="space-y-2">
               {chatState.insights.slice(-2).map((insight, index) => (
-                <div key={index} className="text-sm text-muted-foreground p-2 bg-background rounded-md border">
+                <div key={index} className="text-sm text-muted-foreground p-2 bg-background rounded-md border animate-fade-in hover:bg-muted/50 transition-colors duration-200">
                   {insight}
                 </div>
               ))}
@@ -437,13 +450,13 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
       )}
 
       {/* Chat Interface */}
-      <Card className="h-[500px] flex flex-col">
+      <Card className="h-[500px] flex flex-col animate-fade-in shadow-lg">
         <CardContent className="flex-1 flex flex-col p-0">
           <ChatMessageList 
             messages={chatMessages} 
             isProcessing={chatState.isProcessing}
           />
-          <div className="border-t p-4">
+          <div className="border-t p-4 bg-muted/30">
             <ChatInput
               ref={textareaRef}
               onSend={handleChatResponse}
@@ -460,7 +473,7 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
             
             {/* Quick Actions */}
             {chatState.phase === 'questioning' && chatState.questionCount > 2 && (
-              <div className="mt-3 flex justify-between items-center">
+              <div className="mt-3 flex justify-between items-center animate-fade-in">
                 <div className="text-xs text-muted-foreground">
                   {chatState.questionCount}/{chatState.maxQuestions} questions completed
                 </div>
@@ -469,7 +482,7 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
                   size="sm"
                   onClick={generateWorkoutWithMasterPrompt}
                   disabled={chatState.isProcessing}
-                  className="text-xs"
+                  className="text-xs hover:scale-105 transition-transform duration-200"
                 >
                   <TrendingUp className="h-3 w-3 mr-1" />
                   Generate Program Now

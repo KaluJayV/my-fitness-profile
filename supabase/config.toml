@@ -33,3 +33,6 @@ verify_jwt = false
 
 [functions.adaptive-coach-engine]
 verify_jwt = false
+
+[functions.performance-analytics]
+verify_jwt = false

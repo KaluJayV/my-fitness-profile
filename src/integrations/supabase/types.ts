@@ -94,6 +94,39 @@ export type Database = {
           },
         ]
       }
+      performance_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json | null
+          metric_type: string
+          session_id: string | null
+          timestamp: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          session_id?: string | null
+          timestamp: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          session_id?: string | null
+          timestamp?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       programs: {
         Row: {
           created_at: string | null
