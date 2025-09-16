@@ -165,60 +165,130 @@ export const ModularWorkoutDisplay: React.FC<ModularWorkoutDisplayProps> = ({
             </Card>
 
             {/* Workout Modules */}
-            <div className="space-y-4">
-{(day.modules || [])
-                .sort((a, b) => a.order - b.order)
-                .map((module, moduleIndex) => (
-                  <Card key={moduleIndex} className={getModuleColor(module.type)}>
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {getModuleIcon(module.type)}
-                          <CardTitle className="text-lg">{module.name}</CardTitle>
-                        </div>
-                        <Badge variant="secondary" className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {module.duration_minutes} min
-                        </Badge>
-                      </div>
-                      <CardDescription>{module.description}</CardDescription>
-                    </CardHeader>
-                    
-                    <CardContent>
-                      <div className="space-y-3">
-                        {module.exercises.map((exercise, exerciseIndex) => (
-                          <div key={exerciseIndex} className="flex items-center justify-between p-3 bg-white/50 rounded-lg border">
-                            <div className="flex-1">
-                              <h4 className="font-medium">{exercise.exercise_name}</h4>
-                              <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                                <span>{exercise.sets} sets</span>
-                                <span>{exercise.reps} reps</span>
-                                <span>{exercise.rest} rest</span>
-                                {exercise.suggested_weight && (
-                                  <span className="font-medium text-primary">
-                                    {exercise.suggested_weight}
-                                  </span>
-                                )}
-                              </div>
-                              {exercise.notes && (
-                                <p className="text-sm text-muted-foreground mt-1 italic">
-                                  {exercise.notes}
-                                </p>
+            <div className="space-y-6">
+              {/* Quick Exercise Overview */}
+              <Card className="border-primary/20 bg-primary/5">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Dumbbell className="h-5 w-5 text-primary" />
+                    Exercise Overview for {day.day}
+                  </CardTitle>
+                  <CardDescription>
+                    {(day.modules || []).reduce((total, module) => total + module.exercises.length, 0)} exercises across {(day.modules || []).length} modules
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {(day.modules || [])
+                      .sort((a, b) => a.order - b.order)
+                      .flatMap(module => module.exercises)
+                      .map((exercise, index) => (
+                        <div key={index} className="flex items-center justify-between p-3 bg-background rounded-lg border border-primary/10">
+                          <div className="flex-1">
+                            <h5 className="font-semibold text-sm">{exercise.exercise_name}</h5>
+                            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                              <span className="font-medium">{exercise.sets}×{exercise.reps}</span>
+                              <span>{exercise.rest}</span>
+                              {exercise.suggested_weight && (
+                                <span className="text-primary font-medium">
+                                  {exercise.suggested_weight}
+                                </span>
                               )}
                             </div>
-                            <div className="flex flex-wrap gap-1">
-                              {(exercise.primary_muscles || []).map((muscle, i) => (
-                                <Badge key={i} variant="outline" className="text-xs">
+                            <div className="flex gap-1 mt-1 flex-wrap">
+                              {(exercise.primary_muscles || []).slice(0, 2).map((muscle, i) => (
+                                <Badge key={i} variant="outline" className="text-xs h-5">
                                   {muscle}
                                 </Badge>
                               ))}
+                              {(exercise.primary_muscles || []).length > 2 && (
+                                <Badge variant="outline" className="text-xs h-5">
+                                  +{(exercise.primary_muscles || []).length - 2}
+                                </Badge>
+                              )}
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        </div>
+                      ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Detailed Modules */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Detailed Workout Modules
+                </h3>
+                {(day.modules || [])
+                  .sort((a, b) => a.order - b.order)
+                  .map((module, moduleIndex) => (
+                    <Card key={moduleIndex} className={getModuleColor(module.type)}>
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {getModuleIcon(module.type)}
+                            <CardTitle className="text-lg">{module.name}</CardTitle>
+                          </div>
+                          <Badge variant="secondary" className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {module.duration_minutes} min
+                          </Badge>
+                        </div>
+                        <CardDescription>{module.description}</CardDescription>
+                      </CardHeader>
+                      
+                      <CardContent>
+                        <div className="space-y-3">
+                          {module.exercises.map((exercise, exerciseIndex) => (
+                            <div key={exerciseIndex} className="flex items-start justify-between p-4 bg-white/50 rounded-lg border">
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-base">{exercise.exercise_name}</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 text-sm">
+                                  <div className="flex items-center gap-1">
+                                    <span className="font-medium text-muted-foreground">Sets:</span>
+                                    <span className="font-semibold">{exercise.sets}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <span className="font-medium text-muted-foreground">Reps:</span>
+                                    <span className="font-semibold">{exercise.reps}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <span className="font-medium text-muted-foreground">Rest:</span>
+                                    <span className="font-semibold">{exercise.rest}</span>
+                                  </div>
+                                  {exercise.suggested_weight && (
+                                    <div className="flex items-center gap-1">
+                                      <span className="font-medium text-muted-foreground">Weight:</span>
+                                      <span className="font-semibold text-primary">
+                                        {exercise.suggested_weight}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                                {exercise.notes && (
+                                  <div className="mt-2 p-2 bg-muted/50 rounded text-sm">
+                                    <span className="font-medium">Notes:</span> {exercise.notes}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="ml-4 flex flex-col gap-1">
+                                <span className="text-xs font-medium text-muted-foreground">Target Muscles:</span>
+                                <div className="flex flex-wrap gap-1">
+                                  {(exercise.primary_muscles || []).map((muscle, i) => (
+                                    <Badge key={i} variant="outline" className="text-xs">
+                                      {muscle}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
             </div>
           </TabsContent>
         ))}
