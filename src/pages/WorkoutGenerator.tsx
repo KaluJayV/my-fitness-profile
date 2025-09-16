@@ -677,6 +677,7 @@ Create a detailed workout program that addresses all their needs and preferences
               <div className="flex-1 relative">
                 <Textarea
                   ref={textareaRef}
+                  autoFocus
                   placeholder={
                     conversationPhase === 'clarifying' 
                       ? "Type your answer..." 
@@ -697,6 +698,12 @@ Create a detailed workout program that addresses all their needs and preferences
                       } else {
                         handleChatResponse(currentInput);
                       }
+                    }
+                  }}
+                  onBlur={() => {
+                    // Keep focus for continuous typing unless generating or switching tabs
+                    if (conversationPhase !== 'generating') {
+                      setTimeout(() => textareaRef.current?.focus(), 0);
                     }
                   }}
                 />
