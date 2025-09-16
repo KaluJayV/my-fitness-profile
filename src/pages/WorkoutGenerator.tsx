@@ -154,11 +154,21 @@ const WorkoutGenerator = () => {
         description: isRevision ? "Workout plan updated!" : "Workout plan generated!",
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating workout:', error);
+      
+      let errorMessage = "Failed to generate workout. Please try again.";
+      
+      // Handle specific error types
+      if (error?.message?.includes('Edge Function returned a non-2xx status code')) {
+        errorMessage = "The AI service is temporarily unavailable. Please try again in a moment.";
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to generate workout. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
