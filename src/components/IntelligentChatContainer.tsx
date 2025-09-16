@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { ChatMessageList } from './ChatMessageList';
 import { ChatInput } from './ChatInput';
+import { AIInsightPanel } from './AIInsightPanel';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Exercise, GeneratedWorkoutPlan } from '@/types/workout';
-import { Brain, Target, TrendingUp, MessageCircle, Sparkles } from 'lucide-react';
+import { Brain, Target, TrendingUp, MessageCircle, Sparkles, BarChart3 } from 'lucide-react';
 
 interface ChatMessage {
   type: 'user' | 'assistant' | 'system';
@@ -312,6 +313,11 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
 
   return (
     <div className="space-y-4">
+      {/* AI Insights Panel */}
+      {userId && chatState.phase === 'questioning' && (
+        <AIInsightPanel userId={userId} isVisible={chatState.questionCount >= 2} />
+      )}
+
       {/* Progress Header */}
       <Card className="border-primary/20">
         <CardHeader className="pb-3">

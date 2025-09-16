@@ -27,3 +27,6 @@ verify_jwt = false
 
 [functions.workout-coach-ai-optimized]
 verify_jwt = false
+
+[functions.workout-insights-engine]
+verify_jwt = false
