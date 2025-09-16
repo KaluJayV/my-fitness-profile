@@ -73,15 +73,40 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
     availableInsights: null
   });
 
+  const [loadingStage, setLoadingStage] = useState<string>('Initializing...');
+  const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
+
   const [userId, setUserId] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
 
-  // Get current user
+  // Get current user and detect if they're new
   useEffect(() => {
     const getCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setUserId(user.id);
+          
+          // Quick check if user is new (no workout history)
+          setLoadingStage('Checking your workout history...');
+          const { data: workouts, count } = await supabase
+            .from('workouts')
+            .select('id', { count: 'exact', head: true })
+            .eq('program_id', user.id)
+            .eq('completed', true);
+          
+          const isNew = !count || count === 0;
+          setIsNewUser(isNew);
+          
+          if (isNew) {
+            setLoadingStage('Setting up your profile...');
+          } else {
+            setLoadingStage('Analyzing your workout patterns...');
+          }
+        }
+      } catch (error) {
+        console.error('Error getting user:', error);
+        setIsNewUser(true); // Assume new user on error
       }
     };
     getCurrentUser();
@@ -108,7 +133,16 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
 
     setChatState(prev => ({ ...prev, isProcessing: true }));
     
+    // Fast-track new users with basic questions
+    if (isNewUser) {
+      setLoadingStage('Preparing your consultation...');
+    } else {
+      setLoadingStage('Analyzing your fitness data...');
+    }
+    
     try {
+      setLoadingStage('Generating personalized question...');
+      
       const { data, error } = await supabase.functions.invoke('workout-coach-ai-optimized', {
         body: {
           userId,
@@ -121,7 +155,8 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
           action: 'generate_question',
           currentQuestionCount: chatState.questionCount,
           maxQuestions: chatState.maxQuestions,
-          sessionId
+          sessionId,
+          isNewUser
         }
       });
 
@@ -408,7 +443,10 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
   const getPhaseDescription = () => {
     switch (chatState.phase) {
       case 'analyzing':
-        return "Analyzing your fitness goals and history...";
+        return chatState.isProcessing ? loadingStage : 
+               isNewUser === true ? "Welcome! Let's get started with your fitness journey..." :
+               isNewUser === false ? "Analyzing your workout history and progress..." :
+               "Initializing your AI coach...";
       case 'questioning':
         return `Personalized consultation - Question ${chatState.questionCount}/${chatState.maxQuestions}`;
       case 'generating':

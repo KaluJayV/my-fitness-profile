@@ -2,6 +2,23 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+// Fast-track questions for new users
+function generateNewUserQuestion(preferences: any, questionCount: number): string {
+  const newUserQuestions = [
+    `Hi! I see you're just getting started with us. Given your goal of ${preferences.goal}, what type of workouts do you enjoy most? For example, do you prefer strength training, cardio, bodyweight exercises, or a mix?`,
+    
+    `Thanks for that! Since you mentioned having ${preferences.equipment} equipment available, are there any specific exercises you've done before that you really enjoyed or would like to include in your program?`,
+    
+    `Perfect! One more question to help me create the best program for you - what's the most challenging part about sticking to a workout routine for you? Is it time, motivation, not knowing what to do, or something else?`,
+    
+    `Great insights! Finally, on a scale of 1-10, how would you rate your current fitness level, and are there any areas of your body you'd specifically like to focus on or avoid due to past injuries or preferences?`,
+    
+    `Excellent! I have enough information to create a personalized program that fits your ${preferences.goal} goal. Let me design something perfect for you!`
+  ];
+  
+  return newUserQuestions[questionCount] || newUserQuestions[newUserQuestions.length - 1];
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -26,6 +43,7 @@ interface CoachRequest {
   currentQuestionCount?: number;
   maxQuestions?: number;
   sessionId?: string;
+  isNewUser?: boolean;
 }
 
 interface UserAnalytics {
@@ -63,7 +81,8 @@ serve(async (req) => {
       action,
       currentQuestionCount = 0,
       maxQuestions = 5,
-      sessionId
+      sessionId,
+      isNewUser = false
     }: CoachRequest = await req.json();
 
     // Initialize Supabase client
@@ -74,8 +93,10 @@ serve(async (req) => {
     // Load or create conversation session
     const session = await loadOrCreateSession(supabase, userId, sessionId);
     
-    // Get cached analytics or fetch fresh if needed
-    const userAnalytics = await getCachedAnalytics(supabase, userId, session);
+    // Get cached analytics or fetch fresh if needed - fast-track new users
+    const userAnalytics = isNewUser 
+      ? await getMinimalAnalytics(userId)
+      : await getCachedAnalytics(supabase, userId, session);
 
     console.log('Session loaded:', session.id, 'Analytics cached:', !!session.analytics_cache);
 
@@ -87,7 +108,8 @@ serve(async (req) => {
         conversationHistory,
         currentQuestionCount,
         maxQuestions,
-        session.insights
+        session.insights,
+        isNewUser
       );
 
       // Update session with new conversation data
@@ -197,26 +219,39 @@ async function loadOrCreateSession(supabase: any, userId: string, sessionId?: st
 }
 
 async function getCachedAnalytics(supabase: any, userId: string, session: ConversationSession): Promise<UserAnalytics> {
-  // Check if analytics are cached and still valid (1 hour TTL)
+  // Check if analytics are cached and still valid (4 hour TTL for better performance)
   if (session.analytics_cache) {
     const cacheAge = Date.now() - new Date(session.updated_at).getTime();
-    if (cacheAge < 60 * 60 * 1000) { // 1 hour
+    if (cacheAge < 4 * 60 * 60 * 1000) { // 4 hours
       console.log('Using cached analytics');
       return session.analytics_cache;
     }
   }
 
-  // Fetch fresh analytics
+  // Fetch fresh analytics with timeout
   console.log('Fetching fresh analytics');
-  const analytics = await fetchUserAnalytics(supabase, userId);
+  const analytics = await fetchUserAnalyticsWithTimeout(supabase, userId);
   
-  // Update cache
-  await supabase
+  // Update cache in background
+  supabase
     .from('conversation_sessions')
     .update({ analytics_cache: analytics })
-    .eq('id', session.id);
+    .eq('id', session.id)
+    .then(() => console.log('Analytics cache updated'))
+    .catch((error: any) => console.error('Failed to update cache:', error));
 
   return analytics;
+}
+
+async function getMinimalAnalytics(userId: string): Promise<UserAnalytics> {
+  // Return minimal analytics for new users to fast-track initialization
+  console.log('Using minimal analytics for new user');
+  return {
+    workoutFrequency: null,
+    exerciseHistory: [],
+    coreLifts: [],
+    progressData: []
+  };
 }
 
 async function updateSession(supabase: any, sessionId: string, updates: any) {
@@ -229,9 +264,37 @@ async function updateSession(supabase: any, sessionId: string, updates: any) {
     .eq('id', sessionId);
 }
 
+async function fetchUserAnalyticsWithTimeout(supabase: any, userId: string): Promise<UserAnalytics> {
+  const timeout = new Promise((_, reject) => 
+    setTimeout(() => reject(new Error('Analytics timeout')), 8000) // 8 second timeout
+  );
+  
+  const analyticsPromise = fetchUserAnalytics(supabase, userId);
+  
+  try {
+    return await Promise.race([analyticsPromise, timeout]);
+  } catch (error) {
+    console.error('Analytics fetch failed, using minimal data:', error);
+    return getMinimalAnalytics(userId);
+  }
+}
+
 async function fetchUserAnalytics(supabase: any, userId: string): Promise<UserAnalytics> {
   try {
-    // Optimized parallel fetching
+    // Quick check if user has any data first
+    const { data: hasWorkouts } = await supabase
+      .from('workouts')
+      .select('id')
+      .eq('program_id', userId)
+      .eq('completed', true)
+      .limit(1);
+    
+    if (!hasWorkouts || hasWorkouts.length === 0) {
+      console.log('No workout data found, returning minimal analytics');
+      return getMinimalAnalytics(userId);
+    }
+
+    // Optimized parallel fetching with early returns
     const [workoutFreq, exerciseHist, coreLifts, progressData] = await Promise.all([
       supabase.rpc('get_workout_frequency_stats', { p_user_id: userId }),
       supabase.rpc('get_user_history', { p_user: userId }),
@@ -241,7 +304,7 @@ async function fetchUserAnalytics(supabase: any, userId: string): Promise<UserAn
         .select('*')
         .eq('user_id', userId)
         .order('workout_date', { ascending: false })
-        .limit(20) // Reduced from 50 for cost optimization
+        .limit(15) // Further reduced for faster loading
     ]);
 
     return {
@@ -252,12 +315,7 @@ async function fetchUserAnalytics(supabase: any, userId: string): Promise<UserAn
     };
   } catch (error) {
     console.error('Error in fetchUserAnalytics:', error);
-    return {
-      workoutFrequency: null,
-      exerciseHistory: [],
-      coreLifts: [],
-      progressData: []
-    };
+    return getMinimalAnalytics(userId);
   }
 }
 
@@ -268,11 +326,17 @@ async function generateOptimizedQuestion(
   conversation: any[],
   questionCount: number,
   maxQuestions: number,
-  existingInsights: string[]
+  existingInsights: string[],
+  isNewUser: boolean = false
 ): Promise<string> {
   
-  // Use valid OpenAI models
-  const model = questionCount < 3 ? 'gpt-4o-mini' : 'gpt-4o-mini';
+  // Use faster model for new users
+  const model = isNewUser ? 'gpt-4o-mini' : 'gpt-4o-mini';
+  
+  // Fast-track new users with basic questions
+  if (isNewUser && questionCount === 0) {
+    return generateNewUserQuestion(preferences, questionCount);
+  }
   
   // Summarize conversation for token efficiency
   const conversationSummary = summarizeConversation(conversation);
