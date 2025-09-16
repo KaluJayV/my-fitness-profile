@@ -509,7 +509,7 @@ export type Database = {
       }
       l2_normalize: {
         Args: { "": string } | { "": unknown } | { "": unknown }
-        Returns: unknown
+        Returns: string
       }
       sparsevec_out: {
         Args: { "": unknown }
