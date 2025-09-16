@@ -43,14 +43,36 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch user's training history for weight suggestions
+// Ensure exercise library is available (fallback to DB if none provided)
+let exerciseList: Exercise[] = Array.isArray(exercises) ? exercises : [];
+try {
+  if (!exerciseList || exerciseList.length === 0) {
+    console.log('Input exercise library empty; fetching from database...');
+    const { data: exData, error: exError } = await supabase
+      .from('exercises')
+      .select('id, name, primary_muscles');
+    if (exError) {
+      console.error('Error fetching exercises fallback:', exError);
+    } else {
+      exerciseList = (exData || []).map((e: any) => ({
+        id: e.id,
+        name: e.name,
+        muscles: e.primary_muscles || []
+      }));
+    }
+  }
+} catch (err) {
+  console.error('Unexpected error fetching exercises fallback:', err);
+}
+
+// Fetch user's training history for weight suggestions
     let userHistoryData: any = {};
     if (userId) {
       try {
         console.log('Fetching 1RM data for user:', userId);
         
         // Get 1RM data for each exercise in the library
-        const exercisePromises = exercises.map(async (exercise) => {
+        const exercisePromises = exerciseList.map(async (exercise) => {
           const { data, error } = await supabase.rpc('get_exercise_1rm_data', {
             p_user_id: userId,
             p_exercise_id: exercise.id
@@ -99,7 +121,7 @@ serve(async (req) => {
     }
 
     // Build context for the LLM including user history
-    const exerciseLibrary = exercises.map(ex => {
+    const exerciseLibrary = exerciseList.map(ex => {
       const history = userHistoryData[ex.id];
       let historyInfo = '';
       if (history) {
@@ -188,8 +210,7 @@ ${conversationContext}`;
             content: userMessage
           }
         ],
-        temperature: 0.7,
-        max_tokens: 4000,
+        max_completion_tokens: 4000,
       }),
     });
 
@@ -222,15 +243,47 @@ ${conversationContext}`;
       console.error('Raw content:', completion.choices[0].message.content);
       throw new Error('Failed to parse generated workout plan');
     }
+    // If no workouts or exercises were returned, build a sensible fallback plan
+    if (!workoutPlan || !workoutPlan.workouts || workoutPlan.workouts.length === 0 || workoutPlan.workouts.every((w: any) => !w.exercises || w.exercises.length === 0)) {
+      console.warn('AI returned no workouts/exercises. Building fallback plan.');
+      const days = ['Monday', 'Wednesday', 'Friday'];
+      const pick = (start: number) => (
+        exerciseList.slice(start, start + 5).map(ex => ({
+          exercise_id: ex.id,
+          exercise_name: ex.name,
+          sets: 3,
+          reps: '8-12',
+          rest: '60-90s',
+          suggested_weight: 'Start moderate',
+          notes: 'Adjust weight to stay in target reps with good form.',
+          primary_muscles: ex.muscles || []
+        }))
+      );
+      const fallbackWorkouts = days.map((day, idx) => ({
+        day,
+        name: `Full Body ${idx + 1}`,
+        description: 'Auto-generated fallback when AI output was empty.',
+        exercises: pick(idx * 5)
+      }));
+      workoutPlan = {
+        name: 'Auto Plan',
+        description: 'Fallback plan generated automatically due to empty AI output.',
+        duration_weeks: 4,
+        days_per_week: fallbackWorkouts.length,
+        difficulty: 'beginner',
+        goals: ['Build Muscle', 'Lose Fat'],
+        workouts: fallbackWorkouts
+      };
+    }
 
     // Validate that all exercises exist in the library and fix missing primary_muscles
     for (const workout of workoutPlan.workouts) {
       for (const exercise of workout.exercises) {
-        const foundExercise = exercises.find(ex => ex.id === exercise.exercise_id);
+        const foundExercise = exerciseList.find(ex => ex.id === exercise.exercise_id);
         if (!foundExercise) {
           console.error(`Exercise ID ${exercise.exercise_id} not found in library`);
           // Find a similar exercise by name if possible
-          const similarExercise = exercises.find(ex => 
+          const similarExercise = exerciseList.find(ex => 
             ex.name && exercise.exercise_name && 
             ex.name.toLowerCase().includes(exercise.exercise_name.toLowerCase().split(' ')[0])
           );
@@ -238,11 +291,11 @@ ${conversationContext}`;
             exercise.exercise_id = similarExercise.id;
             exercise.exercise_name = similarExercise.name;
             exercise.primary_muscles = similarExercise.muscles || [];
-          } else if (exercises.length > 0) {
+          } else if (exerciseList.length > 0) {
             // Use first exercise as fallback
-            exercise.exercise_id = exercises[0].id;
-            exercise.exercise_name = exercises[0].name;
-            exercise.primary_muscles = exercises[0].muscles || [];
+            exercise.exercise_id = exerciseList[0].id;
+            exercise.exercise_name = exerciseList[0].name;
+            exercise.primary_muscles = exerciseList[0].muscles || [];
           }
         } else {
           // Exercise exists, ensure primary_muscles is set
