@@ -1,30 +1,21 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AppHeader } from '@/components/AppHeader';
 import { ModularWorkoutDisplay } from '@/components/ModularWorkoutDisplay';
-import { useToast } from '@/components/ui/use-toast';
+import { ChatContainer } from '@/components/ChatContainer';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Sparkles, 
-  Mic, 
-  MicOff, 
-  Send, 
-  Loader2, 
   Target,
   Clock,
   Dumbbell,
   MessageCircle,
-  User,
-  Bot,
-  Play,
   Zap
 } from 'lucide-react';
 import { 
@@ -32,12 +23,6 @@ import {
   GeneratedWorkoutPlan
 } from '@/types/workout';
 
-interface ChatMessage {
-  type: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp: Date;
-  workout?: GeneratedWorkoutPlan;
-}
 
 interface InitialPreferences {
   goal: string;
@@ -55,39 +40,14 @@ const WorkoutGenerator = () => {
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [generatedWorkout, setGeneratedWorkout] = useState<GeneratedWorkoutPlan | null>(null);
   const [activeTab, setActiveTab] = useState('chat');
-  
-  // Chat flow state
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [currentInput, setCurrentInput] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [conversationPhase, setConversationPhase] = useState<'initial' | 'clarifying' | 'generating' | 'complete'>('initial');
-  const [questionCount, setQuestionCount] = useState(0);
   const [initialPreferences, setInitialPreferences] = useState<InitialPreferences | null>(null);
   const [showPreferencesForm, setShowPreferencesForm] = useState(true);
-  
-  // Voice input
-  const [isListening, setIsListening] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchExercises();
-    // Initialize chat with welcome message
-    setChatMessages([{
-      type: 'system',
-      content: "Hi! I'm your AI fitness coach. Let's create a personalized workout program together. First, I'll need some basic preferences, then I'll ask a few clarifying questions to make sure your program is perfect for you.",
-      timestamp: new Date()
-    }]);
   }, []);
 
-  useEffect(() => {
-    // Auto-scroll to bottom of chat
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages]);
-
-  const fetchExercises = async () => {
+  const fetchExercises = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('exercises')
@@ -104,216 +64,22 @@ const WorkoutGenerator = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [toast]);
 
-  const handleInitialPreferences = async (preferences: InitialPreferences) => {
+  const handleInitialPreferences = useCallback((preferences: InitialPreferences) => {
     setInitialPreferences(preferences);
     setShowPreferencesForm(false);
-    setConversationPhase('clarifying');
-    
-    // Focus input as we transition into chat
-    setTimeout(() => textareaRef.current?.focus(), 0);
-    
-    // Add user's preferences to chat
-    const userMessage: ChatMessage = {
-      type: 'user',
-      content: `My preferences: ${preferences.goal}, ${preferences.daysPerWeek} days/week, ${preferences.sessionLength} min sessions, ${preferences.equipment} equipment, ${preferences.experience} experience level${preferences.injuries ? `, injuries: ${preferences.injuries}` : ''}`,
-      timestamp: new Date()
-    };
-    setChatMessages(prev => [...prev, userMessage]);
+  }, []);
 
-    // Generate first clarifying question
-    await askClarifyingQuestion(preferences);
-  };
+  const handleWorkoutGenerated = useCallback((workout: GeneratedWorkoutPlan) => {
+    setGeneratedWorkout(workout);
+    setActiveTab('preview');
+  }, []);
 
-  const askClarifyingQuestion = async (preferences: InitialPreferences) => {
-    setIsProcessing(true);
+  const handleRevision = useCallback(async (revisionPrompt: string) => {
+    if (!generatedWorkout || !exercises) return;
     
     try {
-      const context = `User preferences: Goal: ${preferences.goal}, Days per week: ${preferences.daysPerWeek}, Session length: ${preferences.sessionLength} minutes, Equipment: ${preferences.equipment}, Experience: ${preferences.experience}, Injuries: ${preferences.injuries || 'none'}`;
-      
-      const conversationContext = chatMessages.map(msg => `${msg.type}: ${msg.content}`).join('\n');
-      
-      const prompt = `You are an expert fitness coach having a conversation with a client. Based on their initial preferences and our conversation so far, ask ONE specific, open-ended clarifying question to better understand their needs for their workout program. 
-
-${context}
-
-Previous conversation:
-${conversationContext}
-
-Current question count: ${questionCount}/5
-
-Ask a thoughtful question that will help you create a better workout program. Keep it conversational and focused. Examples of good questions:
-- "What specific muscle groups are you most interested in developing?"
-- "Do you prefer longer rest periods for strength or shorter for conditioning?"
-- "Are there any movements you particularly enjoy or want to avoid?"
-- "What time of day do you usually prefer to work out?"
-
-Respond with ONLY the question, no extra text.`;
-
-      const { data, error } = await supabase.functions.invoke('generate-smart-workout', {
-        body: {
-          prompt,
-          exercises: [],
-          conversationHistory: [],
-          isQuestion: true
-        }
-      });
-
-      if (error) throw error;
-
-      const assistantMessage: ChatMessage = {
-        type: 'assistant',
-        content: data.question || "What specific aspects of your fitness are most important to you right now?",
-        timestamp: new Date()
-      };
-      
-      setChatMessages(prev => [...prev, assistantMessage]);
-      setQuestionCount(prev => prev + 1);
-      
-    } catch (error) {
-      console.error('Error generating question:', error);
-      // Fallback question
-      const fallbackMessage: ChatMessage = {
-        type: 'assistant',
-        content: "What specific muscle groups are you most interested in developing?",
-        timestamp: new Date()
-      };
-      setChatMessages(prev => [...prev, fallbackMessage]);
-      setQuestionCount(prev => prev + 1);
-    } finally {
-      setIsProcessing(false);
-      // keep text box focused for continuous typing
-      textareaRef.current?.focus();
-    }
-  };
-
-  const handleChatResponse = async (userResponse: string) => {
-    if (!userResponse.trim() || isProcessing) return;
-
-    // Add user message
-    const userMessage: ChatMessage = {
-      type: 'user',
-      content: userResponse,
-      timestamp: new Date()
-    };
-    setChatMessages(prev => [...prev, userMessage]);
-    setCurrentInput('');
-    textareaRef.current?.focus();
-
-    if (conversationPhase === 'clarifying') {
-      if (questionCount >= 5) {
-        // Ready to generate
-        await generateWorkoutPlan();
-      } else {
-        // Ask another question
-        await askClarifyingQuestion(initialPreferences!);
-      }
-    }
-  };
-
-  const generateWorkoutPlan = async () => {
-    if (!initialPreferences) return;
-    
-    setConversationPhase('generating');
-    setIsProcessing(true);
-    
-    try {
-      // Add generating message
-      const generatingMessage: ChatMessage = {
-        type: 'assistant',
-        content: "Perfect! I have all the information I need. Let me create your personalized workout program...",
-        timestamp: new Date()
-      };
-      setChatMessages(prev => [...prev, generatingMessage]);
-
-      const conversationContext = chatMessages
-        .filter(msg => msg.type !== 'system')
-        .map(msg => `${msg.type}: ${msg.content}`)
-        .join('\n');
-
-      const fullPrompt = `Based on our conversation, create a comprehensive workout program.
-
-User's initial preferences:
-- Goal: ${initialPreferences.goal}
-- Days per week: ${initialPreferences.daysPerWeek}
-- Session length: ${initialPreferences.sessionLength} minutes
-- Equipment: ${initialPreferences.equipment}
-- Experience: ${initialPreferences.experience}
-- Injuries: ${initialPreferences.injuries || 'none'}
-
-Our conversation:
-${conversationContext}
-
-Create a detailed workout program that addresses all their needs and preferences.`;
-
-      const exerciseLibrary = exercises.map(ex => ({
-        id: ex.id,
-        name: ex.name,
-        muscles: ex.primary_muscles
-      }));
-
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { data, error } = await supabase.functions.invoke('generate-smart-workout', {
-        body: {
-          prompt: fullPrompt,
-          exercises: exerciseLibrary,
-          userId: user?.id
-        }
-      });
-
-      if (error) throw error;
-
-      const completionMessage: ChatMessage = {
-        type: 'assistant',
-        content: "Your personalized workout program is ready! Check out the preview tab to see your plan.",
-        timestamp: new Date(),
-        workout: data.workout
-      };
-      
-      setChatMessages(prev => [...prev, completionMessage]);
-      setGeneratedWorkout(data.workout);
-      setConversationPhase('complete');
-      setActiveTab('preview');
-      
-      toast({
-        title: "Success",
-        description: "Your workout plan has been generated!",
-      });
-
-    } catch (error: any) {
-      console.error('Error generating workout:', error);
-      const errorMessage: ChatMessage = {
-        type: 'assistant',
-        content: "I'm sorry, there was an error generating your workout plan. Please try again.",
-        timestamp: new Date()
-      };
-      setChatMessages(prev => [...prev, errorMessage]);
-      
-      toast({
-        title: "Error",
-        description: "Failed to generate workout plan",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleRevision = async (revisionPrompt: string) => {
-    if (!generatedWorkout) return;
-    
-    setIsProcessing(true);
-    
-    try {
-      const userMessage: ChatMessage = {
-        type: 'user',
-        content: revisionPrompt,
-        timestamp: new Date()
-      };
-      setChatMessages(prev => [...prev, userMessage]);
-
       const exerciseLibrary = exercises.map(ex => ({
         id: ex.id,
         name: ex.name,
@@ -333,14 +99,6 @@ Create a detailed workout program that addresses all their needs and preferences
 
       if (error) throw error;
 
-      const assistantMessage: ChatMessage = {
-        type: 'assistant',
-        content: "I've updated your workout plan based on your feedback!",
-        timestamp: new Date(),
-        workout: data.workout
-      };
-      
-      setChatMessages(prev => [...prev, assistantMessage]);
       setGeneratedWorkout(data.workout);
       
       toast({
@@ -355,13 +113,12 @@ Create a detailed workout program that addresses all their needs and preferences
         description: "Failed to update workout plan",
         variant: "destructive",
       });
-    } finally {
-      setIsProcessing(false);
-      textareaRef.current?.focus();
     }
-  };
+  }, [generatedWorkout, exercises, toast]);
 
-  const saveWorkout = async (schedules: any[]) => {
+
+
+  const saveWorkout = useCallback(async (schedules: any[]) => {
     if (!generatedWorkout) return;
     
     try {
@@ -412,78 +169,8 @@ Create a detailed workout program that addresses all their needs and preferences
         variant: "destructive",
       });
     }
-  };
+  }, [generatedWorkout, toast]);
 
-  // Voice recording functions
-  const startVoiceRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        await processVoiceInput(audioBlob);
-        stream.getTracks().forEach(track => track.stop());
-      };
-
-      mediaRecorder.start();
-      setIsListening(true);
-    } catch (error) {
-      console.error('Error starting voice recording:', error);
-      toast({
-        title: "Error",
-        description: "Could not access microphone",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const stopVoiceRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop();
-      setIsListening(false);
-    }
-  };
-
-  const processVoiceInput = async (audioBlob: Blob) => {
-    try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64Audio = (reader.result as string).split(',')[1];
-        
-        const { data, error } = await supabase.functions.invoke('voice-to-text', {
-          body: { audio: base64Audio }
-        });
-
-        if (error) throw error;
-
-        const transcribedText = data.text;
-        setCurrentInput(transcribedText);
-        
-        toast({
-          title: "Voice Transcribed",
-          description: "Your voice input is ready to send",
-        });
-        textareaRef.current?.focus();
-      };
-      reader.readAsDataURL(audioBlob);
-    } catch (error) {
-      console.error('Error processing voice input:', error);
-      toast({
-        title: "Error",
-        description: "Failed to process voice input",
-        variant: "destructive",
-      });
-    }
-  };
 
   const PreferencesForm = () => {
     const [formData, setFormData] = useState<InitialPreferences>({
@@ -615,132 +302,6 @@ Create a detailed workout program that addresses all their needs and preferences
     );
   };
 
-  const ChatInterface = () => (
-    <Card className="h-[600px] flex flex-col">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2">
-          <MessageCircle className="h-5 w-5" />
-          Workout Planning Conversation
-        </CardTitle>
-        <CardDescription>
-          {conversationPhase === 'clarifying' && `Question ${questionCount}/5 - I'll ask a few questions to personalize your program`}
-          {conversationPhase === 'generating' && "Generating your personalized workout plan..."}
-          {conversationPhase === 'complete' && "Your workout plan is ready! You can ask for revisions anytime."}
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent className="flex-1 flex flex-col">
-        <ScrollArea className="flex-1 pr-4">
-          <div className="space-y-4">
-            {chatMessages.map((message, index) => (
-              <div key={index} className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`flex gap-3 max-w-[80%] ${message.type === 'user' ? 'flex-row-reverse' : ''}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    message.type === 'user' ? 'bg-primary text-primary-foreground' : 
-                    message.type === 'system' ? 'bg-muted text-muted-foreground' : 'bg-accent text-accent-foreground'
-                  }`}>
-                    {message.type === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
-                  </div>
-                  <div className={`rounded-lg p-3 ${
-                    message.type === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                  }`}>
-                    <p className="text-sm">{message.content}</p>
-                    {message.workout && (
-                      <div className="mt-2 pt-2 border-t border-border/20">
-                        <p className="text-xs opacity-75">Workout plan generated ✓</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-            {isProcessing && (
-              <div className="flex gap-3 justify-start">
-                <div className="w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center">
-                  <Bot className="h-4 w-4" />
-                </div>
-                <div className="bg-muted rounded-lg p-3">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <p className="text-sm">Thinking...</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
-        </ScrollArea>
-
-        {conversationPhase !== 'initial' && (
-          <div className="mt-4 pt-4 border-t">
-            <div className="flex gap-2">
-              <div className="flex-1 relative">
-                <Textarea
-                  ref={textareaRef}
-                  placeholder={
-                    conversationPhase === 'clarifying' 
-                      ? "Type your answer..." 
-                      : conversationPhase === 'complete'
-                      ? "Ask for any changes to your workout plan..."
-                      : "Please wait..."
-                  }
-                  value={currentInput}
-                  onChange={(e) => setCurrentInput(e.target.value)}
-                  className="resize-none pr-20"
-                  rows={2}
-                  disabled={conversationPhase === 'generating'}
-                />
-                <div className="absolute bottom-2 right-2 flex gap-1">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={isListening ? "destructive" : "outline"}
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={isListening ? stopVoiceRecording : startVoiceRecording}
-                    disabled={isProcessing}
-                  >
-                    {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                  </Button>
-                  <Button
-                    type="button"
-                    size="sm"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => {
-                      if (conversationPhase === 'complete') {
-                        handleRevision(currentInput);
-                      } else {
-                        handleChatResponse(currentInput);
-                      }
-                    }}
-                    disabled={!currentInput.trim() || isProcessing}
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-            
-            {conversationPhase === 'clarifying' && questionCount > 0 && (
-              <div className="mt-2 flex justify-between items-center">
-                <p className="text-xs text-muted-foreground">
-                  {questionCount}/5 questions completed
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={generateWorkoutPlan}
-                  disabled={isProcessing}
-                >
-                  <Play className="h-4 w-4 mr-1" />
-                  Generate Now
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -770,7 +331,16 @@ Create a detailed workout program that addresses all their needs and preferences
           </TabsList>
 
           <TabsContent value="chat" className="space-y-6">
-            {showPreferencesForm ? <PreferencesForm /> : <ChatInterface />}
+            {showPreferencesForm ? (
+              <PreferencesForm />
+            ) : initialPreferences ? (
+              <ChatContainer
+                exercises={exercises}
+                initialPreferences={initialPreferences}
+                onWorkoutGenerated={handleWorkoutGenerated}
+                onRevision={handleRevision}
+              />
+            ) : null}
             
             {!showPreferencesForm && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
