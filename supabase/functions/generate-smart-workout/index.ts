@@ -48,14 +48,14 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'gpt-5-2025-08-07',
+          model: 'gpt-4o',
           messages: [
             {
               role: 'user',
               content: prompt
             }
           ],
-          max_completion_tokens: 200,
+          max_tokens: 200,
         }),
       });
 
@@ -287,7 +287,7 @@ ${conversationContext}`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-4o',
         messages: [
           {
             role: 'system',
@@ -298,7 +298,7 @@ ${conversationContext}`;
             content: userMessage
           }
         ],
-        max_completion_tokens: 4000,
+        max_tokens: 4000,
       }),
     });
 

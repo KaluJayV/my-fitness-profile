@@ -237,12 +237,12 @@ Generate a single, specific question that a professional coach would ask based o
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-5-2025-08-07',
+      model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: 'Generate the next personalized question for this user.' }
       ],
-      max_completion_tokens: 300,
+      max_tokens: 300,
     }),
   });
 
@@ -292,12 +292,12 @@ Provide a concise analysis that highlights the most important factors for progra
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4.1-2025-04-14',
+      model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: 'Analyze the conversation and provide key insights.' }
       ],
-      max_completion_tokens: 500,
+      max_tokens: 500,
     }),
   });
 
@@ -355,12 +355,12 @@ Create a detailed master prompt that captures every important detail about this 
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'o3-2025-04-16',
+      model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: 'Create the comprehensive master prompt for this user.' }
       ],
-      max_completion_tokens: 1500,
+      max_tokens: 1500,
     }),
   });
 
