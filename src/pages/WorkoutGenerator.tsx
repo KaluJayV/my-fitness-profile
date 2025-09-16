@@ -676,6 +676,7 @@ Create a detailed workout program that addresses all their needs and preferences
             <div className="flex gap-2">
               <div className="flex-1 relative">
                 <Textarea
+                  ref={textareaRef}
                   placeholder={
                     conversationPhase === 'clarifying' 
                       ? "Type your answer..." 
