@@ -34,6 +34,11 @@ serve(async (req) => {
       throw new Error('Prompt is required');
     }
 
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    if (!OPENAI_API_KEY) {
+      throw new Error('OpenAI API key not configured');
+    }
+
     // Handle clarifying question requests
     if (isQuestion) {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -71,10 +76,6 @@ serve(async (req) => {
       );
     }
 
-    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-    if (!OPENAI_API_KEY) {
-      throw new Error('OpenAI API key not configured');
-    }
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;

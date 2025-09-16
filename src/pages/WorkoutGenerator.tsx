@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AppHeader } from '@/components/AppHeader';
 import { ModularWorkoutDisplay } from '@/components/ModularWorkoutDisplay';
-import { ChatContainer } from '@/components/ChatContainer';
+import { IntelligentChatContainer } from '@/components/IntelligentChatContainer';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -334,7 +334,7 @@ const WorkoutGenerator = () => {
             {showPreferencesForm ? (
               <PreferencesForm />
             ) : initialPreferences ? (
-              <ChatContainer
+              <IntelligentChatContainer
                 exercises={exercises}
                 initialPreferences={initialPreferences}
                 onWorkoutGenerated={handleWorkoutGenerated}
@@ -344,30 +344,30 @@ const WorkoutGenerator = () => {
             
             {!showPreferencesForm && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border-dashed">
+                <Card className="border-dashed border-primary/30">
                   <CardContent className="pt-6 text-center">
                     <Target className="h-8 w-8 text-primary mx-auto mb-2" />
-                    <p className="font-medium">Personalized</p>
+                    <p className="font-medium">AI-Powered Analysis</p>
                     <p className="text-sm text-muted-foreground">
-                      Tailored through our conversation
+                      Uses your fitness data and analytics
                     </p>
                   </CardContent>
                 </Card>
-                <Card className="border-dashed">
+                <Card className="border-dashed border-primary/30">
                   <CardContent className="pt-6 text-center">
                     <Clock className="h-8 w-8 text-primary mx-auto mb-2" />
-                    <p className="font-medium">Efficient</p>
+                    <p className="font-medium">Dynamic Questions</p>
                     <p className="text-sm text-muted-foreground">
-                      Quick 5-question clarification
+                      Personalized based on your history
                     </p>
                   </CardContent>
                 </Card>
-                <Card className="border-dashed">
+                <Card className="border-dashed border-primary/30">
                   <CardContent className="pt-6 text-center">
                     <Zap className="h-8 w-8 text-primary mx-auto mb-2" />
-                    <p className="font-medium">Adaptive</p>
+                    <p className="font-medium">Smart Recommendations</p>
                     <p className="text-sm text-muted-foreground">
-                      Easy revisions through chat
+                      Leverages advanced AI reasoning
                     </p>
                   </CardContent>
                 </Card>
