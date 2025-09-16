@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      conversation_sessions: {
+        Row: {
+          analytics_cache: Json | null
+          conversation_data: Json | null
+          created_at: string
+          id: string
+          insights: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analytics_cache?: Json | null
+          conversation_data?: Json | null
+          created_at?: string
+          id?: string
+          insights?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analytics_cache?: Json | null
+          conversation_data?: Json | null
+          created_at?: string
+          id?: string
+          insights?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       exercise_categories: {
         Row: {
           id: number

@@ -24,3 +24,6 @@ verify_jwt = false
 
 [functions.voice-to-text]
 verify_jwt = false
+
+[functions.workout-coach-ai-optimized]
+verify_jwt = false

@@ -67,6 +67,7 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
   });
 
   const [userId, setUserId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   // Get current user
   useEffect(() => {
@@ -101,7 +102,7 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
     setChatState(prev => ({ ...prev, isProcessing: true }));
     
     try {
-      const { data, error } = await supabase.functions.invoke('workout-coach-ai', {
+      const { data, error } = await supabase.functions.invoke('workout-coach-ai-optimized', {
         body: {
           userId,
           userPreferences: initialPreferences,
@@ -112,7 +113,8 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
           })),
           action: 'generate_question',
           currentQuestionCount: chatState.questionCount,
-          maxQuestions: chatState.maxQuestions
+          maxQuestions: chatState.maxQuestions,
+          sessionId
         }
       });
 
@@ -131,6 +133,7 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
         questionCount: data.questionNumber,
         isProcessing: false
       }));
+      setSessionId(data.sessionId);
       
     } catch (error) {
       console.error('Error generating question:', error);
@@ -156,7 +159,7 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
     if (!userId) return;
 
     try {
-      const { data, error } = await supabase.functions.invoke('workout-coach-ai', {
+      const { data, error } = await supabase.functions.invoke('workout-coach-ai-optimized', {
         body: {
           userId,
           userPreferences: initialPreferences,
@@ -165,7 +168,8 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
             content: userResponse,
             timestamp: new Date().toISOString()
           }],
-          action: 'analyze_response'
+          action: 'analyze_response',
+          sessionId
         }
       });
 
@@ -190,7 +194,7 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
     
     try {
       // First, build the master prompt using AI
-      const { data: masterData, error: masterError } = await supabase.functions.invoke('workout-coach-ai', {
+      const { data: masterData, error: masterError } = await supabase.functions.invoke('workout-coach-ai-optimized', {
         body: {
           userId,
           userPreferences: initialPreferences,
@@ -199,7 +203,8 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
             content: msg.content,
             timestamp: msg.timestamp.toISOString()
           })),
-          action: 'build_master_prompt'
+          action: 'build_master_prompt',
+          sessionId
         }
       });
 
