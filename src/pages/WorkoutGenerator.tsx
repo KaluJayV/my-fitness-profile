@@ -676,8 +676,6 @@ Create a detailed workout program that addresses all their needs and preferences
             <div className="flex gap-2">
               <div className="flex-1 relative">
                 <Textarea
-                  ref={textareaRef}
-                  autoFocus
                   placeholder={
                     conversationPhase === 'clarifying' 
                       ? "Type your answer..." 
@@ -690,16 +688,6 @@ Create a detailed workout program that addresses all their needs and preferences
                   className="resize-none pr-20"
                   rows={2}
                   disabled={conversationPhase === 'generating'}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      if (conversationPhase === 'complete') {
-                        handleRevision(currentInput);
-                      } else {
-                        handleChatResponse(currentInput);
-                      }
-                    }
-                  }}
                 />
                 <div className="absolute bottom-2 right-2 flex gap-1">
                   <Button
