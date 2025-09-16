@@ -111,6 +111,9 @@ const WorkoutGenerator = () => {
     setShowPreferencesForm(false);
     setConversationPhase('clarifying');
     
+    // Focus input as we transition into chat
+    setTimeout(() => textareaRef.current?.focus(), 0);
+    
     // Add user's preferences to chat
     const userMessage: ChatMessage = {
       type: 'user',
@@ -180,6 +183,8 @@ Respond with ONLY the question, no extra text.`;
       setQuestionCount(prev => prev + 1);
     } finally {
       setIsProcessing(false);
+      // keep text box focused for continuous typing
+      textareaRef.current?.focus();
     }
   };
 
@@ -194,6 +199,7 @@ Respond with ONLY the question, no extra text.`;
     };
     setChatMessages(prev => [...prev, userMessage]);
     setCurrentInput('');
+    textareaRef.current?.focus();
 
     if (conversationPhase === 'clarifying') {
       if (questionCount >= 5) {
@@ -351,6 +357,7 @@ Create a detailed workout program that addresses all their needs and preferences
       });
     } finally {
       setIsProcessing(false);
+      textareaRef.current?.focus();
     }
   };
 
@@ -465,6 +472,7 @@ Create a detailed workout program that addresses all their needs and preferences
           title: "Voice Transcribed",
           description: "Your voice input is ready to send",
         });
+        textareaRef.current?.focus();
       };
       reader.readAsDataURL(audioBlob);
     } catch (error) {
@@ -680,7 +688,7 @@ Create a detailed workout program that addresses all their needs and preferences
                   onChange={(e) => setCurrentInput(e.target.value)}
                   className="resize-none pr-20"
                   rows={2}
-                  disabled={isProcessing || conversationPhase === 'generating'}
+                  disabled={conversationPhase === 'generating'}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
