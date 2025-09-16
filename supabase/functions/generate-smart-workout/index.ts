@@ -193,7 +193,7 @@ CRITICAL REQUIREMENTS:
 Available Exercise Library:
 ${exerciseLibrary}
 
-RESPONSE FORMAT - Return ONLY valid JSON:
+RESPONSE FORMAT - Return ONLY valid JSON with MODULAR structure:
 {
   "name": "Program Name",
   "description": "Brief description of the program",
@@ -201,21 +201,70 @@ RESPONSE FORMAT - Return ONLY valid JSON:
   "days_per_week": 3-6,
   "difficulty": "beginner|intermediate|advanced",
   "goals": ["goal1", "goal2"],
+  "enabled_modules": ["warmup", "main", "core", "cooldown"],
   "workouts": [
     {
       "day": "Monday",
       "name": "Workout Name",
       "description": "Brief workout description",
-      "exercises": [
+      "total_duration_minutes": 60,
+      "modules": [
         {
-          "exercise_id": 123,
-          "exercise_name": "Exact name from library",
-          "sets": 3,
-          "reps": "8-12",
-          "rest": "90s",
-          "suggested_weight": "75kg" or "Bodyweight" or "Start light",
-          "notes": "Form cues and weight rationale based on user's 1RM if available",
-          "primary_muscles": ["muscle1", "muscle2"]
+          "type": "warmup",
+          "name": "Dynamic Warm-up",
+          "description": "Prepare the body for training",
+          "duration_minutes": 10,
+          "order": 1,
+          "exercises": [
+            {
+              "exercise_id": 123,
+              "exercise_name": "Exact name from library",
+              "sets": 2,
+              "reps": "10-15",
+              "rest": "30s",
+              "suggested_weight": "Bodyweight",
+              "notes": "Light movement to prepare muscles",
+              "primary_muscles": ["muscle1"]
+            }
+          ]
+        },
+        {
+          "type": "main",
+          "name": "Main Training",
+          "description": "Primary strength/conditioning work",
+          "duration_minutes": 40,
+          "order": 2,
+          "exercises": [
+            {
+              "exercise_id": 456,
+              "exercise_name": "Exact name from library",
+              "sets": 3,
+              "reps": "8-12",
+              "rest": "90s",
+              "suggested_weight": "75kg" or "Start light",
+              "notes": "Form cues and weight rationale based on user's 1RM if available",
+              "primary_muscles": ["muscle1", "muscle2"]
+            }
+          ]
+        },
+        {
+          "type": "cooldown",
+          "name": "Cool Down",
+          "description": "Recovery and flexibility",
+          "duration_minutes": 10,
+          "order": 3,
+          "exercises": [
+            {
+              "exercise_id": 789,
+              "exercise_name": "Exact name from library",
+              "sets": 1,
+              "reps": "30-60s",
+              "rest": "0s",
+              "suggested_weight": "Bodyweight",
+              "notes": "Focus on relaxation and flexibility",
+              "primary_muscles": ["muscle1"]
+            }
+          ]
         }
       ]
     }
@@ -282,12 +331,12 @@ ${conversationContext}`;
       console.error('Raw content:', completion.choices[0].message.content);
       throw new Error('Failed to parse generated workout plan');
     }
-    // If no workouts or exercises were returned, build a sensible fallback plan
-    if (!workoutPlan || !workoutPlan.workouts || workoutPlan.workouts.length === 0 || workoutPlan.workouts.every((w: any) => !w.exercises || w.exercises.length === 0)) {
-      console.warn('AI returned no workouts/exercises. Building fallback plan.');
+    // Check for valid modular structure or convert legacy format
+    if (!workoutPlan || !workoutPlan.workouts || workoutPlan.workouts.length === 0) {
+      console.warn('AI returned no workouts. Building fallback modular plan.');
       const days = ['Monday', 'Wednesday', 'Friday'];
-      const pick = (start: number) => (
-        exerciseList.slice(start, start + 5).map(ex => ({
+      const fallbackWorkouts = days.map((day, idx) => {
+        const exercises = exerciseList.slice(idx * 4, (idx + 1) * 4).map(ex => ({
           exercise_id: ex.id,
           exercise_name: ex.name,
           sets: 3,
@@ -296,14 +345,26 @@ ${conversationContext}`;
           suggested_weight: 'Start moderate',
           notes: 'Adjust weight to stay in target reps with good form.',
           primary_muscles: ex.muscles || []
-        }))
-      );
-      const fallbackWorkouts = days.map((day, idx) => ({
-        day,
-        name: `Full Body ${idx + 1}`,
-        description: 'Auto-generated fallback when AI output was empty.',
-        exercises: pick(idx * 5)
-      }));
+        }));
+
+        return {
+          day,
+          name: `Full Body ${idx + 1}`,
+          description: 'Auto-generated fallback workout.',
+          total_duration_minutes: 45,
+          modules: [
+            {
+              type: 'main',
+              name: 'Main Workout',
+              description: 'Primary training session',
+              duration_minutes: 45,
+              order: 1,
+              exercises
+            }
+          ]
+        };
+      });
+      
       workoutPlan = {
         name: 'Auto Plan',
         description: 'Fallback plan generated automatically due to empty AI output.',
@@ -311,35 +372,61 @@ ${conversationContext}`;
         days_per_week: fallbackWorkouts.length,
         difficulty: 'beginner',
         goals: ['Build Muscle', 'Lose Fat'],
+        enabled_modules: ['main'],
         workouts: fallbackWorkouts
       };
+    } else {
+      // Convert legacy format to modular if needed
+      const hasLegacyFormat = workoutPlan.workouts.some((w: any) => w.exercises && !w.modules);
+      if (hasLegacyFormat) {
+        console.log('Converting legacy workout format to modular structure');
+        workoutPlan.workouts = workoutPlan.workouts.map((day: any) => ({
+          ...day,
+          total_duration_minutes: day.total_duration_minutes || (day.exercises?.length * 3.5) || 45,
+          modules: day.exercises ? [
+            {
+              type: 'main',
+              name: 'Main Workout',
+              description: 'Primary training session',
+              duration_minutes: day.total_duration_minutes || (day.exercises.length * 3.5) || 45,
+              order: 1,
+              exercises: day.exercises
+            }
+          ] : []
+        }));
+        workoutPlan.enabled_modules = ['main'];
+        // Remove legacy exercises property
+        workoutPlan.workouts.forEach((day: any) => delete day.exercises);
+      }
     }
 
     // Validate that all exercises exist in the library and fix missing primary_muscles
     for (const workout of workoutPlan.workouts) {
-      for (const exercise of workout.exercises) {
-        const foundExercise = exerciseList.find(ex => ex.id === exercise.exercise_id);
-        if (!foundExercise) {
-          console.error(`Exercise ID ${exercise.exercise_id} not found in library`);
-          // Find a similar exercise by name if possible
-          const similarExercise = exerciseList.find(ex => 
-            ex.name && exercise.exercise_name && 
-            ex.name.toLowerCase().includes(exercise.exercise_name.toLowerCase().split(' ')[0])
-          );
-          if (similarExercise) {
-            exercise.exercise_id = similarExercise.id;
-            exercise.exercise_name = similarExercise.name;
-            exercise.primary_muscles = similarExercise.muscles || [];
-          } else if (exerciseList.length > 0) {
-            // Use first exercise as fallback
-            exercise.exercise_id = exerciseList[0].id;
-            exercise.exercise_name = exerciseList[0].name;
-            exercise.primary_muscles = exerciseList[0].muscles || [];
-          }
-        } else {
-          // Exercise exists, ensure primary_muscles is set
-          if (!exercise.primary_muscles) {
-            exercise.primary_muscles = foundExercise.muscles || [];
+      for (const module of workout.modules || []) {
+        for (const exercise of module.exercises || []) {
+          const foundExercise = exerciseList.find(ex => ex.id === exercise.exercise_id);
+          if (!foundExercise) {
+            console.error(`Exercise ID ${exercise.exercise_id} not found in library`);
+            // Find a similar exercise by name if possible
+            const similarExercise = exerciseList.find(ex => 
+              ex.name && exercise.exercise_name && 
+              ex.name.toLowerCase().includes(exercise.exercise_name.toLowerCase().split(' ')[0])
+            );
+            if (similarExercise) {
+              exercise.exercise_id = similarExercise.id;
+              exercise.exercise_name = similarExercise.name;
+              exercise.primary_muscles = similarExercise.muscles || [];
+            } else if (exerciseList.length > 0) {
+              // Use first exercise as fallback
+              exercise.exercise_id = exerciseList[0].id;
+              exercise.exercise_name = exerciseList[0].name;
+              exercise.primary_muscles = exerciseList[0].muscles || [];
+            }
+          } else {
+            // Exercise exists, ensure primary_muscles is set
+            if (!exercise.primary_muscles) {
+              exercise.primary_muscles = foundExercise.muscles || [];
+            }
           }
         }
       }

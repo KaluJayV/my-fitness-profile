@@ -308,6 +308,21 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
         throw new Error('Received empty workout plan from AI service');
       }
 
+      // Validate workout data before proceeding
+      const workoutPlan = workoutData.workout;
+      if (!workoutPlan.workouts || workoutPlan.workouts.length === 0) {
+        throw new Error('Generated workout plan contains no workout days');
+      }
+
+      // Check for proper data structure
+      const hasValidStructure = workoutPlan.workouts.every((day: any) => 
+        (day.modules && Array.isArray(day.modules)) || (day.exercises && Array.isArray(day.exercises))
+      );
+
+      if (!hasValidStructure) {
+        throw new Error('Generated workout plan has invalid structure');
+      }
+
       const completionMessage: ChatMessage = {
         type: 'assistant',
         content: "🎯 Your personalized workout program is ready! I've analyzed your fitness goals, training history, and preferences to create a program that's perfectly tailored to you. Check out the preview tab to see your custom plan!",

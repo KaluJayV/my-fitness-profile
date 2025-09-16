@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { WorkoutScheduler } from '@/components/WorkoutScheduler';
 import { 
   Save, 
@@ -18,7 +19,10 @@ import {
   Flame,
   Dumbbell,
   Snowflake,
-  Zap
+  Zap,
+  AlertTriangle,
+  BarChart,
+  Activity
 } from 'lucide-react';
 import { 
   Exercise, 
@@ -27,6 +31,7 @@ import {
   WorkoutExercise,
   WorkoutModuleType 
 } from '@/types/workout';
+import { validateWorkoutData, calculateWorkoutStats, validateExercises } from '@/utils/workoutDataUtils';
 
 interface ModularWorkoutDisplayProps {
   workout: GeneratedWorkoutPlan;
@@ -66,7 +71,7 @@ const getModuleColor = (type: WorkoutModuleType) => {
 };
 
 export const ModularWorkoutDisplay: React.FC<ModularWorkoutDisplayProps> = ({
-  workout,
+  workout: rawWorkout,
   onRevision,
   onSave,
   exercises
@@ -75,6 +80,22 @@ export const ModularWorkoutDisplay: React.FC<ModularWorkoutDisplayProps> = ({
   const [showScheduler, setShowScheduler] = useState(false);
   const [revisionPrompt, setRevisionPrompt] = useState('');
 
+  // Validate and convert workout data
+  const validatedWorkout = useMemo(() => {
+    const validated = validateWorkoutData(rawWorkout);
+    if (!validated) {
+      console.error('Invalid workout data:', rawWorkout);
+      return null;
+    }
+    return validateExercises(validated, exercises);
+  }, [rawWorkout, exercises]);
+
+  // Calculate workout statistics
+  const workoutStats = useMemo(() => {
+    if (!validatedWorkout) return null;
+    return calculateWorkoutStats(validatedWorkout);
+  }, [validatedWorkout]);
+
   const handleRevisionSubmit = () => {
     if (revisionPrompt.trim()) {
       onRevision(revisionPrompt);
@@ -82,12 +103,24 @@ export const ModularWorkoutDisplay: React.FC<ModularWorkoutDisplayProps> = ({
     }
   };
 
-  const currentWorkout = workout.workouts[activeDay];
+  // Handle invalid workout data
+  if (!validatedWorkout) {
+    return (
+      <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          Unable to display workout plan. The data format is invalid or corrupted. Please try generating a new workout.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  const currentWorkout = validatedWorkout.workouts[activeDay];
 
   if (showScheduler) {
     return (
       <WorkoutScheduler
-        workout={workout}
+        workout={validatedWorkout}
         onSave={onSave}
         onCancel={() => setShowScheduler(false)}
         isOpen={showScheduler}
@@ -97,50 +130,90 @@ export const ModularWorkoutDisplay: React.FC<ModularWorkoutDisplayProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Workout Header */}
-      <Card>
+      {/* Workout Header with Statistics */}
+      <Card className="border-primary/20">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-primary" />
-                {workout.name}
+                {validatedWorkout.name}
               </CardTitle>
               <CardDescription className="mt-1">
-                {workout.description}
+                {validatedWorkout.description}
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
               <Badge variant="secondary">
-                {workout.difficulty}
+                {validatedWorkout.difficulty}
               </Badge>
               <Badge variant="outline">
-                {workout.days_per_week} days/week
+                {validatedWorkout.days_per_week} days/week
               </Badge>
             </div>
           </div>
           
-          <div className="flex items-center gap-4 mt-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">
-                {workout.duration_weeks} weeks
+                {validatedWorkout.duration_weeks} weeks
               </span>
             </div>
             <div className="flex items-center gap-2">
               <Target className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">
-                {workout.goals.join(', ')}
+                {validatedWorkout.goals.join(', ')}
               </span>
             </div>
+            {workoutStats && (
+              <>
+                <div className="flex items-center gap-2">
+                  <BarChart className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    {workoutStats.totalExercises} exercises
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    {workoutStats.uniqueMuscleGroups} muscle groups
+                  </span>
+                </div>
+              </>
+            )}
           </div>
+          
+          {/* Quick Stats Summary */}
+          {workoutStats && (
+            <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className="text-2xl font-bold text-primary">{workoutStats.totalExercises}</div>
+                  <div className="text-xs text-muted-foreground">Total Exercises</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-primary">{workoutStats.totalModules}</div>
+                  <div className="text-xs text-muted-foreground">Workout Modules</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-primary">{workoutStats.averageDuration}m</div>
+                  <div className="text-xs text-muted-foreground">Avg Duration</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-primary">{workoutStats.uniqueMuscleGroups}</div>
+                  <div className="text-xs text-muted-foreground">Muscle Groups</div>
+                </div>
+              </div>
+            </div>
+          )}
         </CardHeader>
       </Card>
 
       {/* Day Navigation */}
       <Tabs value={activeDay.toString()} onValueChange={(value) => setActiveDay(parseInt(value))}>
         <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
-          {workout.workouts.map((day, index) => (
+          {validatedWorkout.workouts.map((day, index) => (
             <TabsTrigger key={index} value={index.toString()} className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />
               {day.day}
@@ -148,7 +221,7 @@ export const ModularWorkoutDisplay: React.FC<ModularWorkoutDisplayProps> = ({
           ))}
         </TabsList>
 
-        {workout.workouts.map((day, dayIndex) => (
+        {validatedWorkout.workouts.map((day, dayIndex) => (
           <TabsContent key={dayIndex} value={dayIndex.toString()} className="space-y-4">
             {/* Day Header */}
             <Card>
