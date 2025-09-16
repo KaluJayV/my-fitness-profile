@@ -43,6 +43,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+    }).catch((error) => {
+      console.error('Auth session error:', error);
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();

@@ -207,7 +207,7 @@ export const ModularWorkoutDisplay: React.FC<ModularWorkoutDisplayProps> = ({
                               )}
                             </div>
                             <div className="flex flex-wrap gap-1">
-                              {exercise.primary_muscles.map((muscle, i) => (
+                              {(exercise.primary_muscles || []).map((muscle, i) => (
                                 <Badge key={i} variant="outline" className="text-xs">
                                   {muscle}
                                 </Badge>

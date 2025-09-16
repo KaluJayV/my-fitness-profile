@@ -496,17 +496,17 @@ const SessionTracker = () => {
                   {exercise.planData.notes && !isMobile && (
                     <div><strong>Notes:</strong> {exercise.planData.notes}</div>
                   )}
-                  {exercise.planData.primary_muscles.length > 0 && (
+                  {(exercise.planData.primary_muscles || []).length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       <strong>Muscles:</strong>
-                      {exercise.planData.primary_muscles.slice(0, isMobile ? 2 : 4).map((muscle, index) => (
+                      {(exercise.planData.primary_muscles || []).slice(0, isMobile ? 2 : 4).map((muscle, index) => (
                         <Badge key={index} variant="secondary" className="text-xs">
                           {muscle}
                         </Badge>
                       ))}
-                      {isMobile && exercise.planData.primary_muscles.length > 2 && (
+                      {isMobile && (exercise.planData.primary_muscles || []).length > 2 && (
                         <Badge variant="secondary" className="text-xs">
-                          +{exercise.planData.primary_muscles.length - 2}
+                          +{(exercise.planData.primary_muscles || []).length - 2}
                         </Badge>
                       )}
                     </div>
