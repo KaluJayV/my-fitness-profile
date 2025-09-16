@@ -47,7 +47,7 @@ const MessageBubble = React.memo(({ message }: { message: ChatMessage }) => {
           'bg-muted'
         }>
           <CardContent className="p-3">
-            <p className={`text-sm whitespace-pre-wrap ${
+            <p className={`text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere hyphens-auto ${
               isError ? 'text-destructive' : ''
             }`}>
               {message.content}
@@ -86,7 +86,7 @@ export const ChatMessageList = React.memo<ChatMessageListProps>(({ messages, isP
   return (
     <div className="flex-1 min-h-0 overflow-hidden">
       <ScrollArea className="h-full">
-        <div className="p-4 space-y-4">
+        <div className="p-4 pr-6 space-y-4">
           {messages.map((message, index) => (
             <MessageBubble key={`${message.timestamp.getTime()}-${index}`} message={message} />
           ))}
