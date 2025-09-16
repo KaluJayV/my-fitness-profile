@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { ChatMessageList } from './ChatMessageList';
 import { ChatInput } from './ChatInput';
 import { AIInsightPanel } from './AIInsightPanel';
+import { ConversationQualityDisplay } from './ConversationQualityDisplay';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,8 @@ interface ChatState {
   maxQuestions: number;
   isProcessing: boolean;
   insights: string[];
+  conversationQuality: any;
+  availableInsights: any;
 }
 
 interface IntelligentChatContainerProps {
@@ -64,7 +67,9 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
     questionCount: 0,
     maxQuestions: 5,
     isProcessing: false,
-    insights: []
+    insights: [],
+    conversationQuality: null,
+    availableInsights: null
   });
 
   const [userId, setUserId] = useState<string | null>(null);
@@ -185,7 +190,42 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
     } catch (error) {
       console.error('Error analyzing response:', error);
     }
-  }, [userId, initialPreferences, chatMessages]);
+  }, [userId, initialPreferences, chatMessages, sessionId]);
+
+  // Assess conversation quality
+  const assessConversationQuality = useCallback(async () => {
+    if (!userId || !sessionId) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('adaptive-coach-engine', {
+        body: {
+          userId,
+          sessionId,
+          userPreferences: initialPreferences,
+          conversationHistory: chatMessages.map(msg => ({
+            type: msg.type,
+            content: msg.content,
+            timestamp: msg.timestamp.toISOString()
+          })),
+          action: 'quality_score',
+          context: {
+            questionCount: chatState.questionCount,
+            maxQuestions: chatState.maxQuestions,
+            phase: chatState.phase
+          }
+        }
+      });
+
+      if (!error && data) {
+        setChatState(prev => ({ 
+          ...prev, 
+          conversationQuality: data.quality
+        }));
+      }
+    } catch (error) {
+      console.error('Error assessing conversation quality:', error);
+    }
+  }, [userId, sessionId, initialPreferences, chatMessages, chatState.questionCount, chatState.maxQuestions, chatState.phase]);
 
   // Generate comprehensive master prompt and create workout
   const generateWorkoutWithMasterPrompt = useCallback(async () => {
@@ -274,16 +314,25 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
     // Analyze the response for insights
     await analyzeUserResponse(userResponse);
 
+    // Assess conversation quality
+    if (chatState.questionCount >= 2) {
+      setTimeout(() => assessConversationQuality(), 1000);
+    }
+
     if (chatState.phase === 'questioning') {
-      if (chatState.questionCount >= chatState.maxQuestions) {
-        await generateWorkoutWithMasterPrompt();
-      } else {
+      // Check if we should continue based on quality score or question count
+      const shouldContinue = !chatState.conversationQuality?.shouldContinue && 
+                           chatState.questionCount < chatState.maxQuestions;
+      
+      if (shouldContinue) {
         await generateIntelligentQuestion();
+      } else {
+        await generateWorkoutWithMasterPrompt();
       }
     } else if (chatState.phase === 'complete' && onRevision) {
       await onRevision(userResponse);
     }
-  }, [chatState.phase, chatState.questionCount, chatState.maxQuestions, analyzeUserResponse, generateIntelligentQuestion, generateWorkoutWithMasterPrompt, onRevision]);
+  }, [chatState.phase, chatState.questionCount, chatState.maxQuestions, chatState.conversationQuality, analyzeUserResponse, assessConversationQuality, generateIntelligentQuestion, generateWorkoutWithMasterPrompt, onRevision]);
 
   // Start with first intelligent question
   useEffect(() => {
@@ -291,6 +340,14 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
       generateIntelligentQuestion();
     }
   }, [userId, generateIntelligentQuestion, chatState.questionCount, chatState.isProcessing, chatState.phase]);
+
+  // Handle insights from AIInsightPanel
+  const handleInsightsGenerated = useCallback((insights: any) => {
+    setChatState(prev => ({ 
+      ...prev, 
+      availableInsights: { ...prev.availableInsights, ...insights }
+    }));
+  }, []);
 
   const getPhaseDescription = () => {
     switch (chatState.phase) {
@@ -315,8 +372,18 @@ export const IntelligentChatContainer: React.FC<IntelligentChatContainerProps> =
     <div className="space-y-4">
       {/* AI Insights Panel */}
       {userId && chatState.phase === 'questioning' && (
-        <AIInsightPanel userId={userId} isVisible={chatState.questionCount >= 2} />
+        <AIInsightPanel 
+          userId={userId} 
+          isVisible={chatState.questionCount >= 2}
+          onInsightsGenerated={handleInsightsGenerated}
+        />
       )}
+
+      {/* Conversation Quality Display */}
+      <ConversationQualityDisplay 
+        quality={chatState.conversationQuality}
+        isVisible={chatState.phase === 'questioning' && chatState.questionCount >= 3}
+      />
 
       {/* Progress Header */}
       <Card className="border-primary/20">

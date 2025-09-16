@@ -30,3 +30,6 @@ verify_jwt = false
 
 [functions.workout-insights-engine]
 verify_jwt = false
+
+[functions.adaptive-coach-engine]
+verify_jwt = false

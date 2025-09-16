@@ -20,6 +20,7 @@ import {
 interface AIInsightPanelProps {
   userId: string;
   isVisible: boolean;
+  onInsightsGenerated?: (insights: any) => void;
 }
 
 interface InsightData {
@@ -34,7 +35,7 @@ interface InsightData {
   adherencePredictors?: string[];
 }
 
-export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({ userId, isVisible }) => {
+export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({ userId, isVisible, onInsightsGenerated }) => {
   const { toast } = useToast();
   const [insights, setInsights] = useState<Record<string, InsightData>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
@@ -88,6 +89,11 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({ userId, isVisibl
       if (error) throw error;
 
       setInsights(prev => ({ ...prev, [type]: data.insights }));
+      
+      // Notify parent component about new insights
+      if (onInsightsGenerated) {
+        onInsightsGenerated({ [type]: data.insights });
+      }
       
       toast({
         title: "✨ Insights Generated",
