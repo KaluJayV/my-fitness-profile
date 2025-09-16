@@ -678,6 +678,7 @@ Create a detailed workout program that addresses all their needs and preferences
                 <Textarea
                   ref={textareaRef}
                   autoFocus
+                  dir="ltr"
                   placeholder={
                     conversationPhase === 'clarifying' 
                       ? "Type your answer..." 
@@ -687,7 +688,7 @@ Create a detailed workout program that addresses all their needs and preferences
                   }
                   value={currentInput}
                   onChange={(e) => setCurrentInput(e.target.value)}
-                  className="resize-none pr-20"
+                  className="resize-none pr-20 text-left"
                   rows={2}
                   disabled={conversationPhase === 'generating'}
                   onKeyDown={(e) => {
@@ -700,18 +701,13 @@ Create a detailed workout program that addresses all their needs and preferences
                       }
                     }
                   }}
-                  onBlur={() => {
-                    // Keep focus for continuous typing unless generating or switching tabs
-                    if (conversationPhase !== 'generating') {
-                      setTimeout(() => textareaRef.current?.focus(), 0);
-                    }
-                  }}
                 />
                 <div className="absolute bottom-2 right-2 flex gap-1">
                   <Button
                     type="button"
                     size="sm"
                     variant={isListening ? "destructive" : "outline"}
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={isListening ? stopVoiceRecording : startVoiceRecording}
                     disabled={isProcessing}
                   >
@@ -720,6 +716,7 @@ Create a detailed workout program that addresses all their needs and preferences
                   <Button
                     type="button"
                     size="sm"
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
                       if (conversationPhase === 'complete') {
                         handleRevision(currentInput);
