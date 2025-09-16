@@ -688,7 +688,7 @@ Create a detailed workout program that addresses all their needs and preferences
                   }
                   value={currentInput}
                   onChange={(e) => setCurrentInput(e.target.value)}
-                  className="resize-none pr-20 text-left"
+                  className="resize-none pr-20 text-left [direction:ltr] [unicode-bidi:plaintext]"
                   rows={2}
                   disabled={conversationPhase === 'generating'}
                   onKeyDown={(e) => {
