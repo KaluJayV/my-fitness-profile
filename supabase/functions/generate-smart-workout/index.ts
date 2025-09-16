@@ -223,25 +223,31 @@ ${conversationContext}`;
       throw new Error('Failed to parse generated workout plan');
     }
 
-    // Validate that all exercises exist in the library
+    // Validate that all exercises exist in the library and fix missing primary_muscles
     for (const workout of workoutPlan.workouts) {
       for (const exercise of workout.exercises) {
-        const exerciseExists = exercises.some(ex => ex.id === exercise.exercise_id);
-        if (!exerciseExists) {
+        const foundExercise = exercises.find(ex => ex.id === exercise.exercise_id);
+        if (!foundExercise) {
           console.error(`Exercise ID ${exercise.exercise_id} not found in library`);
           // Find a similar exercise by name if possible
           const similarExercise = exercises.find(ex => 
+            ex.name && exercise.exercise_name && 
             ex.name.toLowerCase().includes(exercise.exercise_name.toLowerCase().split(' ')[0])
           );
           if (similarExercise) {
             exercise.exercise_id = similarExercise.id;
             exercise.exercise_name = similarExercise.name;
             exercise.primary_muscles = similarExercise.muscles || [];
-          } else {
+          } else if (exercises.length > 0) {
             // Use first exercise as fallback
             exercise.exercise_id = exercises[0].id;
             exercise.exercise_name = exercises[0].name;
             exercise.primary_muscles = exercises[0].muscles || [];
+          }
+        } else {
+          // Exercise exists, ensure primary_muscles is set
+          if (!exercise.primary_muscles) {
+            exercise.primary_muscles = foundExercise.muscles || [];
           }
         }
       }
