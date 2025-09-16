@@ -19,6 +19,7 @@ interface WorkoutRequest {
   currentWorkout?: any;
   conversationHistory?: Array<{ type: string; content: string; timestamp: Date }>;
   userId?: string;
+  isQuestion?: boolean;
 }
 
 serve(async (req) => {
@@ -27,10 +28,47 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt, exercises, currentWorkout, conversationHistory, userId }: WorkoutRequest = await req.json();
+    const { prompt, exercises, currentWorkout, conversationHistory, userId, isQuestion }: WorkoutRequest = await req.json();
     
     if (!prompt) {
       throw new Error('Prompt is required');
+    }
+
+    // Handle clarifying question requests
+    if (isQuestion) {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-5-2025-08-07',
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_completion_tokens: 200,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('OpenAI API error:', errorData);
+        throw new Error(`OpenAI API error: ${response.statusText}`);
+      }
+
+      const completion = await response.json();
+      const question = completion.choices[0].message.content.trim();
+
+      return new Response(
+        JSON.stringify({ question }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
