@@ -11,7 +11,7 @@ import { ExerciseSetTable } from "@/components/ExerciseSetTable";
 import { WorkoutVoiceInput } from "@/components/WorkoutVoiceInput";
 import { WorkoutAssistant } from "@/components/WorkoutAssistant";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ensureModularFormat } from "@/utils/workoutSerializer";
+import { WorkoutDataManager } from "@/utils/WorkoutDataManager";
 
 interface Set {
   id: string;
@@ -85,27 +85,19 @@ const SessionTracker = () => {
 
   const fetchWorkout = async () => {
     try {
-      const { data, error } = await supabase
-        .from('workouts')
-        .select(`
-          *,
-          programs (
-            name
-          )
-        `)
-        .eq('id', workoutId)
-        .single();
+      // Use WorkoutDataManager for validated loading
+      const { workout: workoutData, isModular, errors } = await WorkoutDataManager.loadWorkout(workoutId!);
 
-      if (error) throw error;
-      if (!data) throw new Error('Workout not found');
+      if (!workoutData) {
+        throw new Error(errors[0] || 'Workout not found');
+      }
 
-      const workoutWithProgram = {
-        ...data,
-        program: data.programs
-      };
+      if (errors.length > 0) {
+        console.warn('Workout validation warnings:', errors);
+      }
 
-      setWorkout(workoutWithProgram);
-      await setupExercises(workoutWithProgram);
+      setWorkout(workoutData);
+      await setupExercises(workoutData, isModular);
     } catch (error) {
       console.error('Error fetching workout:', error);
       toast({
@@ -119,29 +111,68 @@ const SessionTracker = () => {
     }
   };
 
-  const setupExercises = async (workoutData: Workout) => {
+  const setupExercises = async (workoutData: Workout, isModular?: boolean) => {
     if (!workoutData.json_plan) return;
 
     try {
-      // Ensure we have modular format for consistent exercise extraction
-      const modularWorkout = ensureModularFormat({ workouts: [workoutData.json_plan] });
-      const workoutDay = modularWorkout.workouts[0];
-      
-      // Extract all exercises from all modules
-      const allExercises = workoutDay.modules?.flatMap(module => module.exercises) || [];
+      let allExercises: any[] = [];
+
+      // Handle both modular and legacy formats safely
+      if (isModular || workoutData.json_plan.modules) {
+        // Modular format - use WorkoutDataManager for safe conversion
+        const { workout: modularWorkout, errors } = WorkoutDataManager.safeConvertToModular({ 
+          workouts: [workoutData.json_plan] 
+        });
+        
+        if (!modularWorkout) {
+          console.error('Failed to convert to modular format:', errors);
+          toast({
+            title: "Warning",
+            description: "Workout format may be incompatible. Some features may not work correctly.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        const workoutDay = modularWorkout.workouts[0];
+        allExercises = workoutDay.modules?.flatMap(module => module.exercises) || [];
+      } else {
+        // Legacy format
+        allExercises = workoutData.json_plan.exercises || [];
+      }
+
+      if (allExercises.length === 0) {
+        toast({
+          title: "Warning", 
+          description: "No exercises found in this workout",
+          variant: "destructive"
+        });
+        return;
+      }
 
       // Get or create workout_exercises for this workout
       const exercisePromises = allExercises.map(async (planExercise: any, index: number) => {
+        // Handle different exercise ID formats
+        const exerciseId = planExercise.exercise_id || planExercise.id;
+        const exerciseName = planExercise.exercise_name || planExercise.name || `Exercise ${index + 1}`;
+
+        if (!exerciseId) {
+          console.warn(`Exercise at index ${index} missing ID:`, planExercise);
+          return null;
+        }
+
         // Check if workout_exercise already exists
         let { data: workoutExercise, error } = await supabase
           .from('workout_exercises')
           .select('id')
           .eq('workout_id', workoutData.id)
-          .eq('exercise_id', planExercise.exercise_id)
+          .eq('exercise_id', exerciseId)
           .eq('position', index)
           .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') throw error;
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error checking workout_exercise:', error);
+        }
 
         // Create if doesn't exist
         if (!workoutExercise) {
@@ -149,13 +180,16 @@ const SessionTracker = () => {
             .from('workout_exercises')
             .insert({
               workout_id: workoutData.id,
-              exercise_id: planExercise.exercise_id,
+              exercise_id: exerciseId,
               position: index
             })
             .select('id')
             .single();
 
-          if (insertError) throw insertError;
+          if (insertError) {
+            console.error('Error creating workout_exercise:', insertError);
+            return null;
+          }
           workoutExercise = newWorkoutExercise;
         }
 
@@ -168,8 +202,8 @@ const SessionTracker = () => {
         }));
 
         return {
-          id: planExercise.exercise_id,
-          name: planExercise.exercise_name || `Exercise ${index + 1}`,
+          id: exerciseId,
+          name: exerciseName,
           primary_muscles: planExercise.primary_muscles || [],
           workout_exercise_id: workoutExercise.id,
           sets: initialSets,
@@ -184,13 +218,21 @@ const SessionTracker = () => {
         };
       });
 
-      const exercisesWithIds = await Promise.all(exercisePromises);
+      const exercisesWithIds = (await Promise.all(exercisePromises)).filter(Boolean);
       setExercises(exercisesWithIds);
+
+      if (exercisesWithIds.length === 0) {
+        toast({
+          title: "Error",
+          description: "Failed to load any exercises. Please try again.",
+          variant: "destructive"
+        });
+      }
     } catch (error) {
       console.error('Error setting up exercises:', error);
       toast({
         title: "Error",
-        description: "Failed to setup exercises",
+        description: "Failed to setup exercises. Workout may be corrupted.",
         variant: "destructive"
       });
     }

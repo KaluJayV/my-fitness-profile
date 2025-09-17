@@ -132,41 +132,59 @@ const WorkoutGenerator = () => {
         return;
       }
 
-      const { data: program, error: programError } = await supabase
-        .from('programs')
-        .insert({
-          name: generatedWorkout.name,
-          days_per_week: generatedWorkout.days_per_week,
-          generator_source: 'ai_generated',
-          user_id: user.id
-        })
-        .select()
-        .single();
+      // Use WorkoutDataManager for validated saving
+      const { WorkoutDataManager } = await import('@/utils/WorkoutDataManager');
+      const saveResult = await WorkoutDataManager.saveWorkoutProgram(generatedWorkout, user.id);
 
-      if (programError) throw programError;
+      if (!saveResult.success) {
+        console.error('Save validation errors:', saveResult.errors);
+        toast({
+          title: "Validation Error",
+          description: saveResult.errors[0] || "Invalid workout data",
+          variant: "destructive",
+        });
+        return;
+      }
 
-      const workoutEntries = schedules.map(schedule => ({
-        program_id: program.id,
-        workout_date: schedule.date.toISOString().split('T')[0],
-        json_plan: {
-          ...generatedWorkout.workouts[schedule.workoutIndex],
-          workout_type: 'modular', // Flag to identify modular format
-          enabled_modules: generatedWorkout.enabled_modules,
-          difficulty: generatedWorkout.difficulty,
-          goals: generatedWorkout.goals
-        } as any
-      }));
+      // Create scheduled workouts if schedules provided
+      if (schedules && schedules.length > 0 && saveResult.programId) {
+        const workoutEntries = schedules.map(schedule => ({
+          program_id: saveResult.programId,
+          workout_date: schedule.date.toISOString().split('T')[0],
+          json_plan: {
+            ...generatedWorkout.workouts[schedule.workoutIndex],
+            workout_type: 'modular',
+            enabled_modules: generatedWorkout.enabled_modules,
+            difficulty: generatedWorkout.difficulty,
+            goals: generatedWorkout.goals,
+            format_version: '2.0'
+          } as any
+        }));
 
-      const { error: workoutsError } = await supabase
-        .from('workouts')
-        .insert(workoutEntries);
+        const { error: scheduledError } = await supabase
+          .from('workouts')
+          .insert(workoutEntries);
 
-      if (workoutsError) throw workoutsError;
+        if (scheduledError) {
+          console.error('Error saving scheduled workouts:', scheduledError);
+          toast({
+            title: "Partial Success",
+            description: "Workout saved but scheduling failed. You can schedule it later.",
+            variant: "destructive",
+          });
+          return;
+        }
 
-      toast({
-        title: "Success",
-        description: `Workout plan saved with ${schedules.length} scheduled workouts!`,
-      });
+        toast({
+          title: "Success",
+          description: `Workout plan saved with ${schedules.length} scheduled workouts!`,
+        });
+      } else {
+        toast({
+          title: "Success", 
+          description: "Workout plan saved successfully!",
+        });
+      }
     } catch (error) {
       console.error('Error saving workout:', error);
       toast({
