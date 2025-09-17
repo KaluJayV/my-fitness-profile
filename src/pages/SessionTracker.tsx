@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import { WorkoutVoiceInput } from "@/components/WorkoutVoiceInput";
 import { WorkoutAssistant } from "@/components/WorkoutAssistant";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { WorkoutDataManager } from "@/utils/WorkoutDataManager";
+import { ErrorDisplay, LoadingState } from "@/components/ui/error-display";
+import { useSafeOperation } from "@/hooks/useSafeOperation";
 
 interface Set {
   id: string;
@@ -47,6 +49,10 @@ interface Workout {
 const SessionTracker = () => {
   const { id: workoutId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const isMobile = useIsMobile();
+  const { executeOperation, loadingState, retry } = useSafeOperation();
+  
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [exerciseLibrary, setExerciseLibrary] = useState<Array<{
@@ -54,13 +60,9 @@ const SessionTracker = () => {
     name: string;
     primary_muscles: string[];
   }>>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [sessionStartTime] = useState(new Date());
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [selectedExerciseIndex, setSelectedExerciseIndex] = useState<number | null>(null);
-  const { toast } = useToast();
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (workoutId) {
@@ -69,47 +71,60 @@ const SessionTracker = () => {
     }
   }, [workoutId]);
 
-  const fetchExerciseLibrary = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('exercises')
-        .select('id, name, primary_muscles')
-        .order('name');
+  const fetchExerciseLibrary = useCallback(async () => {
+    await executeOperation(
+      async () => {
+        const { data, error } = await supabase
+          .from('exercises')
+          .select('id, name, primary_muscles')
+          .order('name');
 
-      if (error) throw error;
-      setExerciseLibrary(data || []);
-    } catch (error) {
-      console.error('Error fetching exercise library:', error);
-    }
-  };
-
-  const fetchWorkout = async () => {
-    try {
-      // Use WorkoutDataManager for validated loading
-      const { workout: workoutData, isModular, errors } = await WorkoutDataManager.loadWorkout(workoutId!);
-
-      if (!workoutData) {
-        throw new Error(errors[0] || 'Workout not found');
+        if (error) throw error;
+        return data || [];
+      },
+      'Loading exercise library',
+      {
+        retryable: true,
+        onSuccess: (data) => setExerciseLibrary(data),
+        onError: (error) => console.error('Failed to load exercise library:', error)
       }
+    );
+  }, [executeOperation]);
 
-      if (errors.length > 0) {
-        console.warn('Workout validation warnings:', errors);
+  const fetchWorkout = useCallback(async () => {
+    await executeOperation(
+      async () => {
+        // Use WorkoutDataManager for validated loading
+        const { workout: workoutData, isModular, errors } = await WorkoutDataManager.loadWorkout(workoutId!);
+
+        if (!workoutData) {
+          throw new Error(errors[0] || 'Workout not found');
+        }
+
+        if (errors.length > 0) {
+          console.warn('Workout validation warnings:', errors);
+        }
+
+        setWorkout(workoutData);
+        await setupExercises(workoutData, isModular);
+        return workoutData;
+      },
+      'Loading workout',
+      {
+        requireAuth: true,
+        retryable: true,
+        loadingMessage: 'Loading your workout...',
+        onError: (error) => {
+          toast({
+            title: "Error",
+            description: "Failed to load workout",
+            variant: "destructive"
+          });
+          navigate('/');
+        }
       }
-
-      setWorkout(workoutData);
-      await setupExercises(workoutData, isModular);
-    } catch (error) {
-      console.error('Error fetching workout:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load workout",
-        variant: "destructive"
-      });
-      navigate('/');
-    } finally {
-      setLoading(false);
-    }
-  };
+    );
+  }, [workoutId, executeOperation, toast, navigate]);
 
   const setupExercises = async (workoutData: Workout, isModular?: boolean) => {
     if (!workoutData.json_plan) return;
@@ -308,70 +323,72 @@ const SessionTracker = () => {
     name: ex.name
   }));
 
-  const finishSession = async () => {
-    setSaving(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+  const finishSession = useCallback(async () => {
+    await executeOperation(
+      async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
 
-      // Collect all sets to insert
-      const setsToInsert = exercises.flatMap(exercise => 
-        exercise.sets
-          .filter(set => set.weight !== null || set.reps !== null)
-          .map(set => ({
-            workout_exercise_id: exercise.workout_exercise_id,
-            weight: set.weight,
-            reps: set.reps,
-            rir: set.rir,
-            performed_at: new Date().toISOString()
-          }))
-      );
+        // Collect all sets to insert
+        const setsToInsert = exercises.flatMap(exercise => 
+          exercise.sets
+            .filter(set => set.weight !== null || set.reps !== null)
+            .map(set => ({
+              workout_exercise_id: exercise.workout_exercise_id,
+              weight: set.weight,
+              reps: set.reps,
+              rir: set.rir,
+              performed_at: new Date().toISOString()
+            }))
+        );
 
-      if (setsToInsert.length === 0) {
-        toast({
-          title: "No sets recorded",
-          description: "Please add at least one set before finishing",
-          variant: "destructive"
-        });
-        return;
+        if (setsToInsert.length === 0) {
+          throw new Error('Please add at least one set before finishing');
+        }
+
+        // Batch insert all sets
+        const { error } = await supabase
+          .from('sets')
+          .insert(setsToInsert);
+
+        if (error) throw error;
+
+        // Mark the workout as completed
+        const { error: workoutError } = await supabase
+          .from('workouts')
+          .update({ completed: true })
+          .eq('id', workoutId);
+
+        if (workoutError) {
+          console.error('Error marking workout as completed:', workoutError);
+          // Don't fail the whole operation for this
+        }
+
+        return { setCount: setsToInsert.length, exerciseCount: exercises.length };
+      },
+      'Saving workout session',
+      {
+        requireAuth: true,
+        loadingMessage: 'Saving your session...',
+        timeout: 60000, // Longer timeout for data saving
+        onSuccess: (result) => {
+          toast({
+            title: "Session completed!",
+            description: `Recorded ${result.setCount} sets across ${result.exerciseCount} exercises`
+          });
+          // Navigate to analytics dashboard
+          navigate('/analytics');
+        },
+        onError: (error) => {
+          toast({
+            title: "Error",
+            description: error,
+            variant: "destructive"
+          });
+        }
       }
-
-      // Batch insert all sets
-      const { error } = await supabase
-        .from('sets')
-        .insert(setsToInsert);
-
-      if (error) throw error;
-
-      // Mark the workout as completed
-      const { error: workoutError } = await supabase
-        .from('workouts')
-        .update({ completed: true })
-        .eq('id', workoutId);
-
-      if (workoutError) {
-        console.error('Error marking workout as completed:', workoutError);
-        // Don't fail the whole operation for this
-      }
-
-      toast({
-        title: "Session completed!",
-        description: `Recorded ${setsToInsert.length} sets across ${exercises.length} exercises`
-      });
-
-      // Navigate to analytics dashboard
-      navigate('/analytics');
-    } catch (error) {
-      console.error('Error saving session:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save workout session",
-        variant: "destructive"
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
+    );
+  }, [exercises, workoutId, executeOperation, toast, navigate]);
 
   const getSessionDuration = () => {
     const now = new Date();
@@ -443,26 +460,32 @@ const SessionTracker = () => {
     setAssistantOpen(true);
   };
 
-  if (loading) {
+  // Show loading state
+  if (loadingState.isLoading) {
     return (
       <div className="min-h-screen bg-background p-4">
         <div className="max-w-2xl mx-auto">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-1/2"></div>
-            <div className="h-32 bg-muted rounded"></div>
-            <div className="h-32 bg-muted rounded"></div>
-          </div>
+          <LoadingState 
+            isLoading={true} 
+            message={loadingState.lastOperation || 'Loading workout...'}
+          />
         </div>
       </div>
     );
   }
 
-  if (!workout) {
+  // Show error state with retry option
+  if (loadingState.error && !workout) {
     return (
       <div className="min-h-screen bg-background p-4 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Workout not found</h2>
-          <Button onClick={() => navigate('/')}>
+        <div className="max-w-md w-full">
+          <ErrorDisplay
+            error={loadingState.error}
+            context="Loading Workout"
+            canRetry={true}
+            onRetry={() => retry(fetchWorkout, 'Loading workout')}
+          />
+          <Button onClick={() => navigate('/')} variant="outline" className="w-full mt-4">
             Back to Home
           </Button>
         </div>
@@ -584,14 +607,14 @@ const SessionTracker = () => {
         <div className={`mx-auto ${isMobile ? '' : 'max-w-2xl'}`}>
           <Button 
             onClick={finishSession}
-            disabled={saving}
+            disabled={loadingState.isLoading}
             size={isMobile ? "default" : "lg"}
             className="w-full"
           >
-            {saving ? (
+            {loadingState.isLoading ? (
               <>
                 <div className={`animate-spin rounded-full border-2 border-white border-t-transparent ${isMobile ? 'h-3 w-3' : 'h-4 w-4'} mr-2`}></div>
-                Saving...
+                {loadingState.lastOperation || 'Saving...'}
               </>
             ) : (
               <>

@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AppHeader } from '@/components/AppHeader';
 import { ModularWorkoutDisplay } from '@/components/ModularWorkoutDisplay';
 import { IntelligentChatContainer } from '@/components/IntelligentChatContainer';
+import { ErrorDisplay, LoadingState } from '@/components/ui/error-display';
+import { useSafeOperation } from '@/hooks/useSafeOperation';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -35,6 +37,7 @@ interface InitialPreferences {
 
 const WorkoutGenerator = () => {
   const { toast } = useToast();
+  const { executeOperation, loadingState, retry } = useSafeOperation();
   
   // Core state
   const [exercises, setExercises] = useState<Exercise[]>([]);
@@ -48,23 +51,29 @@ const WorkoutGenerator = () => {
   }, []);
 
   const fetchExercises = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('exercises')
-        .select('id, name, primary_muscles, gif_url')
-        .order('name');
+    const result = await executeOperation(
+      async () => {
+        const { data, error } = await supabase
+          .from('exercises')
+          .select('id, name, primary_muscles, gif_url')
+          .order('name');
 
-      if (error) throw error;
-      setExercises(data || []);
-    } catch (error) {
-      console.error('Error fetching exercises:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load exercise library",
-        variant: "destructive",
-      });
-    }
-  }, [toast]);
+        if (error) throw error;
+        return data || [];
+      },
+      'Loading exercise library',
+      {
+        loadingMessage: 'Loading exercises...',
+        retryable: true,
+        onSuccess: (data) => setExercises(data),
+        onError: (error) => toast({
+          title: "Error",
+          description: "Failed to load exercise library. Some features may be limited.",
+          variant: "destructive",
+        })
+      }
+    );
+  }, [executeOperation, toast]);
 
   const handleInitialPreferences = useCallback((preferences: InitialPreferences) => {
     setInitialPreferences(preferences);
@@ -79,121 +88,124 @@ const WorkoutGenerator = () => {
   const handleRevision = useCallback(async (revisionPrompt: string) => {
     if (!generatedWorkout || !exercises) return;
     
-    try {
-      const exerciseLibrary = exercises.map(ex => ({
-        id: ex.id,
-        name: ex.name,
-        muscles: ex.primary_muscles
-      }));
+    const result = await executeOperation(
+      async () => {
+        const exerciseLibrary = exercises.map(ex => ({
+          id: ex.id,
+          name: ex.name,
+          muscles: ex.primary_muscles
+        }));
 
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { data, error } = await supabase.functions.invoke('generate-smart-workout', {
-        body: {
-          prompt: revisionPrompt,
-          exercises: exerciseLibrary,
-          currentWorkout: generatedWorkout,
-          userId: user?.id
-        }
-      });
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        const { data, error } = await supabase.functions.invoke('generate-smart-workout', {
+          body: {
+            prompt: revisionPrompt,
+            exercises: exerciseLibrary,
+            currentWorkout: generatedWorkout,
+            userId: user?.id
+          }
+        });
 
-      if (error) throw error;
-
-      setGeneratedWorkout(data.workout);
-      
-      toast({
-        title: "Success",
-        description: "Workout plan updated!",
-      });
-
-    } catch (error: any) {
-      console.error('Error revising workout:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update workout plan",
-        variant: "destructive",
-      });
-    }
-  }, [generatedWorkout, exercises, toast]);
+        if (error) throw error;
+        return data.workout;
+      },
+      'Revising workout plan',
+      {
+        loadingMessage: 'Updating your workout...',
+        retryable: true,
+        requireAuth: true,
+        onSuccess: (updatedWorkout) => {
+          setGeneratedWorkout(updatedWorkout);
+          toast({
+            title: "Success",
+            description: "Workout plan updated!",
+          });
+        },
+        onError: (error) => toast({
+          title: "Error", 
+          description: "Failed to update workout plan. Please try again.",
+          variant: "destructive",
+        })
+      }
+    );
+  }, [generatedWorkout, exercises, executeOperation, toast]);
 
 
 
   const saveWorkout = useCallback(async (schedules: any[]) => {
     if (!generatedWorkout) return;
     
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Error",
-          description: "You must be logged in to save workouts",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Use WorkoutDataManager for validated saving
-      const { WorkoutDataManager } = await import('@/utils/WorkoutDataManager');
-      const saveResult = await WorkoutDataManager.saveWorkoutProgram(generatedWorkout, user.id);
-
-      if (!saveResult.success) {
-        console.error('Save validation errors:', saveResult.errors);
-        toast({
-          title: "Validation Error",
-          description: saveResult.errors[0] || "Invalid workout data",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Create scheduled workouts if schedules provided
-      if (schedules && schedules.length > 0 && saveResult.programId) {
-        const workoutEntries = schedules.map(schedule => ({
-          program_id: saveResult.programId,
-          workout_date: schedule.date.toISOString().split('T')[0],
-          json_plan: {
-            ...generatedWorkout.workouts[schedule.workoutIndex],
-            workout_type: 'modular',
-            enabled_modules: generatedWorkout.enabled_modules,
-            difficulty: generatedWorkout.difficulty,
-            goals: generatedWorkout.goals,
-            format_version: '2.0'
-          } as any
-        }));
-
-        const { error: scheduledError } = await supabase
-          .from('workouts')
-          .insert(workoutEntries);
-
-        if (scheduledError) {
-          console.error('Error saving scheduled workouts:', scheduledError);
-          toast({
-            title: "Partial Success",
-            description: "Workout saved but scheduling failed. You can schedule it later.",
-            variant: "destructive",
-          });
-          return;
+    const result = await executeOperation(
+      async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error('You must be logged in to save workouts');
         }
 
-        toast({
-          title: "Success",
-          description: `Workout plan saved with ${schedules.length} scheduled workouts!`,
-        });
-      } else {
-        toast({
-          title: "Success", 
-          description: "Workout plan saved successfully!",
-        });
+        // Use WorkoutDataManager for validated saving
+        const { WorkoutDataManager } = await import('@/utils/WorkoutDataManager');
+        const saveResult = await WorkoutDataManager.saveWorkoutProgram(generatedWorkout, user.id);
+
+        if (!saveResult.success) {
+          throw new Error(saveResult.errors[0] || "Invalid workout data");
+        }
+
+        // Create scheduled workouts if schedules provided
+        if (schedules && schedules.length > 0 && saveResult.programId) {
+          const workoutEntries = schedules.map(schedule => ({
+            program_id: saveResult.programId,
+            workout_date: schedule.date.toISOString().split('T')[0],
+            json_plan: {
+              ...generatedWorkout.workouts[schedule.workoutIndex],
+              workout_type: 'modular',
+              enabled_modules: generatedWorkout.enabled_modules,
+              difficulty: generatedWorkout.difficulty,
+              goals: generatedWorkout.goals,
+              format_version: '2.0'
+            } as any
+          }));
+
+          const { error: scheduledError } = await supabase
+            .from('workouts')
+            .insert(workoutEntries);
+
+          if (scheduledError) {
+            console.error('Error saving scheduled workouts:', scheduledError);
+            throw new Error("Workout saved but scheduling failed. You can schedule it later.");
+          }
+
+          return { scheduleCount: schedules.length };
+        }
+
+        return { scheduleCount: 0 };
+      },
+      'Saving workout plan',
+      {
+        loadingMessage: 'Saving your workout...',
+        retryable: true,
+        requireAuth: true,
+        onSuccess: (result) => {
+          if (result.scheduleCount > 0) {
+            toast({
+              title: "Success",
+              description: `Workout plan saved with ${result.scheduleCount} scheduled workouts!`,
+            });
+          } else {
+            toast({
+              title: "Success", 
+              description: "Workout plan saved successfully!",
+            });
+          }
+        },
+        onError: (error) => toast({
+          title: "Error",
+          description: error,
+          variant: "destructive",
+        })
       }
-    } catch (error) {
-      console.error('Error saving workout:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save workout",
-        variant: "destructive",
-      });
-    }
-  }, [generatedWorkout, toast]);
+    );
+  }, [generatedWorkout, executeOperation, toast]);
 
 
   const PreferencesForm = () => {
@@ -355,6 +367,14 @@ const WorkoutGenerator = () => {
           </TabsList>
 
           <TabsContent value="chat" className="space-y-6">
+            <LoadingState isLoading={loadingState.isLoading} message={loadingState.lastOperation} />
+            <ErrorDisplay 
+              error={loadingState.error} 
+              context="Workout Generation"
+              canRetry={loadingState.retryCount < 3}
+              onRetry={() => retry(fetchExercises, 'Loading exercise library')}
+            />
+            
             {showPreferencesForm ? (
               <PreferencesForm />
             ) : initialPreferences ? (
