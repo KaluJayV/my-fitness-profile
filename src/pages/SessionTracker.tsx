@@ -342,12 +342,13 @@ const SessionTracker = () => {
   };
 
   const handleExerciseSubstitution = async (
-    exerciseIndex: number, 
     newExercise: { id: number; name: string; primary_muscles: string[] },
     reason: string
   ) => {
+    if (selectedExerciseIndex === null) return;
+    
     try {
-      const originalExercise = exercises[exerciseIndex];
+      const originalExercise = exercises[selectedExerciseIndex];
       
       // Create a new workout_exercise entry for the substituted exercise
       const { data: newWorkoutExercise, error } = await supabase
@@ -356,8 +357,8 @@ const SessionTracker = () => {
           workout_id: workout!.id,
           exercise_id: newExercise.id,
           position: originalExercise.workout_exercise_id ? 
-            exercises.length + exerciseIndex : // Use a new position if substituting
-            exerciseIndex
+            exercises.length + selectedExerciseIndex : // Use a new position if substituting
+            selectedExerciseIndex
         })
         .select('id')
         .single();
@@ -366,7 +367,7 @@ const SessionTracker = () => {
 
       // Update the exercise in the local state with the new exercise details
       setExercises(prev => prev.map((exercise, index) => 
-        index === exerciseIndex 
+        index === selectedExerciseIndex 
           ? { 
               ...exercise,
               id: newExercise.id,
@@ -580,8 +581,7 @@ const SessionTracker = () => {
           }}
           currentExercise={exercises[selectedExerciseIndex]}
           exerciseLibrary={exerciseLibrary}
-          onExerciseSubstitution={handleExerciseSubstitution}
-          exerciseIndex={selectedExerciseIndex}
+          onExerciseSubstitute={handleExerciseSubstitution}
         />
       )}
     </div>
