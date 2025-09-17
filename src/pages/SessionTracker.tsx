@@ -11,6 +11,7 @@ import { ExerciseSetTable } from "@/components/ExerciseSetTable";
 import { WorkoutVoiceInput } from "@/components/WorkoutVoiceInput";
 import { WorkoutAssistant } from "@/components/WorkoutAssistant";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ensureModularFormat } from "@/utils/workoutSerializer";
 
 interface Set {
   id: string;
@@ -119,17 +120,24 @@ const SessionTracker = () => {
   };
 
   const setupExercises = async (workoutData: Workout) => {
-    if (!workoutData.json_plan?.exercises) return;
+    if (!workoutData.json_plan) return;
 
     try {
+      // Ensure we have modular format for consistent exercise extraction
+      const modularWorkout = ensureModularFormat({ workouts: [workoutData.json_plan] });
+      const workoutDay = modularWorkout.workouts[0];
+      
+      // Extract all exercises from all modules
+      const allExercises = workoutDay.modules?.flatMap(module => module.exercises) || [];
+
       // Get or create workout_exercises for this workout
-      const exercisePromises = workoutData.json_plan.exercises.map(async (planExercise: any, index: number) => {
+      const exercisePromises = allExercises.map(async (planExercise: any, index: number) => {
         // Check if workout_exercise already exists
         let { data: workoutExercise, error } = await supabase
           .from('workout_exercises')
           .select('id')
           .eq('workout_id', workoutData.id)
-          .eq('exercise_id', planExercise.exercise_id || planExercise.id)
+          .eq('exercise_id', planExercise.exercise_id)
           .eq('position', index)
           .maybeSingle();
 
@@ -141,7 +149,7 @@ const SessionTracker = () => {
             .from('workout_exercises')
             .insert({
               workout_id: workoutData.id,
-              exercise_id: planExercise.exercise_id || planExercise.id,
+              exercise_id: planExercise.exercise_id,
               position: index
             })
             .select('id')
@@ -160,8 +168,8 @@ const SessionTracker = () => {
         }));
 
         return {
-          id: planExercise.exercise_id || planExercise.id,
-          name: planExercise.exercise_name || planExercise.name || planExercise.exercise?.name || `Exercise ${index + 1}`,
+          id: planExercise.exercise_id,
+          name: planExercise.exercise_name || `Exercise ${index + 1}`,
           primary_muscles: planExercise.primary_muscles || [],
           workout_exercise_id: workoutExercise.id,
           sets: initialSets,
@@ -498,17 +506,11 @@ const SessionTracker = () => {
                   )}
                   {(exercise.planData.primary_muscles || []).length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      <strong>Muscles:</strong>
-                      {(exercise.planData.primary_muscles || []).slice(0, isMobile ? 2 : 4).map((muscle, index) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
+                      {exercise.planData.primary_muscles.map((muscle, i) => (
+                        <Badge key={i} variant="secondary" className={isMobile ? 'text-xs h-5' : 'text-xs'}>
                           {muscle}
                         </Badge>
                       ))}
-                      {isMobile && (exercise.planData.primary_muscles || []).length > 2 && (
-                        <Badge variant="secondary" className="text-xs">
-                          +{(exercise.planData.primary_muscles || []).length - 2}
-                        </Badge>
-                      )}
                     </div>
                   )}
                 </div>
@@ -522,10 +524,11 @@ const SessionTracker = () => {
               />
               <Button
                 variant="outline"
-                className={`w-full ${isMobile ? 'mt-2 h-9 text-sm' : 'mt-3'}`}
+                size="sm"
                 onClick={() => addSet(exerciseIndex)}
+                className={`mt-3 w-full ${isMobile ? 'h-8 text-xs' : ''}`}
               >
-                <Plus className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} mr-2`} />
+                <Plus className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} mr-1`} />
                 Add Set
               </Button>
             </CardContent>
@@ -533,9 +536,33 @@ const SessionTracker = () => {
         ))}
       </div>
 
-      {/* Voice Input for Mobile */}
+      {/* Floating Finish Button */}
+      <div className={`fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur border-t ${isMobile ? 'pb-6' : ''}`}>
+        <div className={`mx-auto ${isMobile ? '' : 'max-w-2xl'}`}>
+          <Button 
+            onClick={finishSession}
+            disabled={saving}
+            size={isMobile ? "default" : "lg"}
+            className="w-full"
+          >
+            {saving ? (
+              <>
+                <div className={`animate-spin rounded-full border-2 border-white border-t-transparent ${isMobile ? 'h-3 w-3' : 'h-4 w-4'} mr-2`}></div>
+                Saving...
+              </>
+            ) : (
+              <>
+                <Check className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} mr-2`} />
+                Finish Session
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {/* Mobile Voice Input */}
       {isMobile && (
-        <div className="fixed bottom-16 right-4 z-40">
+        <div className="fixed bottom-20 right-4">
           <WorkoutVoiceInput 
             exercises={exerciseList}
             onDataReceived={handleVoiceData}
@@ -544,36 +571,19 @@ const SessionTracker = () => {
       )}
 
       {/* Workout Assistant */}
-      {selectedExerciseIndex !== null && (
+      {assistantOpen && selectedExerciseIndex !== null && (
         <WorkoutAssistant
           open={assistantOpen}
-          onOpenChange={setAssistantOpen}
+          onOpenChange={(open) => {
+            setAssistantOpen(open);
+            if (!open) setSelectedExerciseIndex(null);
+          }}
           currentExercise={exercises[selectedExerciseIndex]}
           exerciseLibrary={exerciseLibrary}
-          onExerciseSubstitute={(newExercise, reason) => 
-            handleExerciseSubstitution(selectedExerciseIndex, newExercise, reason)
-          }
+          onExerciseSubstitution={handleExerciseSubstitution}
+          exerciseIndex={selectedExerciseIndex}
         />
       )}
-
-      {/* Floating Finish Button */}
-      <div className={`fixed ${isMobile ? 'bottom-4 left-4 right-4' : 'bottom-6 left-1/2 transform -translate-x-1/2'} z-50`}>
-        <Button
-          size={isMobile ? "default" : "lg"}
-          onClick={finishSession}
-          disabled={saving || exercises.every(ex => ex.sets.length === 0)}
-          className={`${isMobile ? 'w-full h-12 text-base' : 'px-8 py-3'} shadow-lg`}
-        >
-          {saving ? (
-            "Saving..."
-          ) : (
-            <>
-              <Check className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} mr-2`} />
-              Finish Workout
-            </>
-          )}
-        </Button>
-      </div>
     </div>
   );
 };

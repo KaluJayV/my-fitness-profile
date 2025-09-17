@@ -212,7 +212,7 @@ export const ModularWorkoutDisplay: React.FC<ModularWorkoutDisplayProps> = ({
 
       {/* Day Navigation */}
       <Tabs value={activeDay.toString()} onValueChange={(value) => setActiveDay(parseInt(value))}>
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+        <TabsList className={`grid w-full grid-cols-${Math.min(validatedWorkout.workouts.length, 6)}`}>
           {validatedWorkout.workouts.map((day, index) => (
             <TabsTrigger key={index} value={index.toString()} className="flex items-center gap-1">
               <Calendar className="h-4 w-4" />

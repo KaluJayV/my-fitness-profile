@@ -148,7 +148,13 @@ const WorkoutGenerator = () => {
       const workoutEntries = schedules.map(schedule => ({
         program_id: program.id,
         workout_date: schedule.date.toISOString().split('T')[0],
-        json_plan: generatedWorkout.workouts[schedule.workoutIndex] as any
+        json_plan: {
+          ...generatedWorkout.workouts[schedule.workoutIndex],
+          workout_type: 'modular', // Flag to identify modular format
+          enabled_modules: generatedWorkout.enabled_modules,
+          difficulty: generatedWorkout.difficulty,
+          goals: generatedWorkout.goals
+        } as any
       }));
 
       const { error: workoutsError } = await supabase

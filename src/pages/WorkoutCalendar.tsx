@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
+import { ensureModularFormat } from "@/utils/workoutSerializer";
 
 interface Program {
   id: string;
@@ -75,16 +76,25 @@ const WorkoutCalendar = () => {
   };
 
   const formatWorkoutTitle = (workout: Workout) => {
-    if (workout.json_plan?.exercises?.length) {
-      const exerciseCount = workout.json_plan.exercises.length;
+    // Ensure we have modular format for consistent display
+    const modularWorkout = ensureModularFormat({ workouts: [workout.json_plan] });
+    const workoutDay = modularWorkout.workouts[0];
+    
+    if (workoutDay?.modules) {
+      const exerciseCount = workoutDay.modules.reduce((total, module) => total + module.exercises.length, 0);
       return `${exerciseCount} Exercise${exerciseCount !== 1 ? 's' : ''}`;
     }
     return workout.program?.name || 'Workout';
   };
 
   const getExerciseNames = (workout: Workout) => {
-    if (workout.json_plan?.exercises?.length) {
-      return workout.json_plan.exercises.slice(0, 2).map((ex: any) => ex.name);
+    // Ensure we have modular format for consistent display
+    const modularWorkout = ensureModularFormat({ workouts: [workout.json_plan] });
+    const workoutDay = modularWorkout.workouts[0];
+    
+    if (workoutDay?.modules) {
+      const exercises = workoutDay.modules.flatMap(module => module.exercises);
+      return exercises.slice(0, 2).map((ex: any) => ex.exercise_name);
     }
     return [];
   };
@@ -273,16 +283,18 @@ const WorkoutCalendar = () => {
                             {getExerciseNames(workout).length > 0 && (
                               <p className="text-xs text-muted-foreground">
                                 {getExerciseNames(workout).join(', ')}
-                                {workout.json_plan?.exercises?.length > 2 && 
-                                  ` +${workout.json_plan.exercises.length - 2} more`
-                                }
+                                {(() => {
+                                  const modularWorkout = ensureModularFormat({ workouts: [workout.json_plan] });
+                                  const exerciseCount = modularWorkout.workouts[0]?.modules?.reduce((total, module) => total + module.exercises.length, 0) || 0;
+                                  return exerciseCount > 2 ? ` +${exerciseCount - 2} more` : '';
+                                })()}
                               </p>
                             )}
                           </div>
                         </div>
                         <div className="flex gap-2">
                           <Button asChild size="sm" className="flex-1 h-9">
-                            <Link to={`/workout/${workout.id}`}>
+                            <Link to={`/session-tracker/${workout.id}`}>
                               <Play className="h-4 w-4 mr-1" />
                               Start Workout
                             </Link>
