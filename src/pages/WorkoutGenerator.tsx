@@ -11,6 +11,7 @@ import { IntelligentChatContainer } from '@/components/IntelligentChatContainer'
 import { ErrorDisplay, LoadingState } from '@/components/ui/error-display';
 import { useSafeOperation } from '@/hooks/useSafeOperation';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Sparkles, 
@@ -37,6 +38,7 @@ interface InitialPreferences {
 
 const WorkoutGenerator = () => {
   const { toast } = useToast();
+  const { user, session, loading: authLoading } = useAuth();
   const { executeOperation, loadingState, retry } = useSafeOperation();
   
   // Core state
@@ -136,13 +138,18 @@ const WorkoutGenerator = () => {
   const saveWorkout = useCallback(async (schedules: any[]) => {
     if (!generatedWorkout) return;
     
+    // Check auth state before operation
+    if (!user || !session) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to save workouts",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const result = await executeOperation(
       async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          throw new Error('You must be logged in to save workouts');
-        }
-
         // Use WorkoutDataManager for validated saving
         const { WorkoutDataManager } = await import('@/utils/WorkoutDataManager');
         const saveResult = await WorkoutDataManager.saveWorkoutProgram(generatedWorkout, user.id);
@@ -185,6 +192,7 @@ const WorkoutGenerator = () => {
         loadingMessage: 'Saving your workout...',
         retryable: true,
         requireAuth: true,
+        userId: user.id,
         onSuccess: (result) => {
           if (result.scheduleCount > 0) {
             toast({
@@ -205,7 +213,7 @@ const WorkoutGenerator = () => {
         })
       }
     );
-  }, [generatedWorkout, executeOperation, toast]);
+  }, [generatedWorkout, executeOperation, toast, user, session]);
 
 
   const PreferencesForm = () => {

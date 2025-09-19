@@ -233,12 +233,38 @@ export class WorkoutErrorHandler {
     if (!userId) {
       return {
         hasPermission: false,
-        error: 'You must be logged in to perform this action'
+        error: 'You must be logged in to perform this action. Please log in and try again.'
       };
     }
 
-    // Add any additional permission checks here
-    return { hasPermission: true };
+    // Validate session state
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error || !session) {
+        return {
+          hasPermission: false,
+          error: 'Your session has expired. Please log in again.'
+        };
+      }
+
+      // Verify the session belongs to the user
+      if (session.user.id !== userId) {
+        return {
+          hasPermission: false,
+          error: 'Authentication mismatch. Please log out and log in again.'
+        };
+      }
+
+      return { hasPermission: true };
+    } catch (error) {
+      console.error('Permission validation error:', error);
+      return {
+        hasPermission: false,
+        error: 'Unable to verify authentication. Please try again.'
+      };
+    }
   }
 
   /**
