@@ -240,17 +240,17 @@ const WorkoutGenerator = () => {
     };
 
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Dumbbell className="h-5 w-5" />
-            Tell me about your fitness goals
-          </CardTitle>
-          <CardDescription>
+      <div className="border-4 border-foreground p-12 max-w-3xl mx-auto bg-background">
+        <div className="mb-10 border-b-3 border-foreground pb-6">
+          <h2 className="text-5xl font-display mb-4 flex items-center gap-4">
+            <Dumbbell className="h-12 w-12" />
+            TELL ME ABOUT YOUR FITNESS GOALS
+          </h2>
+          <p className="text-xl font-medium">
             Let's start with some basic preferences, then I'll ask a few questions to personalize your program
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </div>
+        <div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Primary Goal *</label>
@@ -336,13 +336,16 @@ const WorkoutGenerator = () => {
               />
             </div>
 
-            <Button type="submit" className="w-full">
+            <button 
+              type="submit" 
+              className="w-full build-wars-button mt-8"
+            >
               Start Conversation
-              <MessageCircle className="ml-2 h-4 w-4" />
-            </Button>
+              <MessageCircle className="inline-block ml-3 h-5 w-5" />
+            </button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   };
 
@@ -351,37 +354,65 @@ const WorkoutGenerator = () => {
     <div className="min-h-screen bg-background">
       <AppHeader title="AI Workout Coach" showBack={true} />
       
-      <div className="container mx-auto p-4 lg:p-6">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-2 flex items-center justify-center gap-3">
-            <Sparkles className="h-8 w-8 text-primary" />
-            AI Workout Coach
+      <div className="container mx-auto px-6 py-12 max-w-7xl">
+        <div className="mb-16 border-b-4 border-foreground pb-8">
+          <h1 className="text-7xl md:text-8xl font-display mb-6 leading-none">
+            AI WORKOUT<br />COACH
           </h1>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-xl md:text-2xl font-medium max-w-3xl">
             Have a conversation with AI to create your perfect workout program
           </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="chat" className="flex items-center gap-2">
-              <MessageCircle className="h-4 w-4" />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-12">
+          <div className="grid grid-cols-2 gap-4 border-3 border-foreground">
+            <button
+              onClick={() => setActiveTab('chat')}
+              className={`px-8 py-6 text-xl font-bold uppercase transition-all border-r-3 border-foreground ${
+                activeTab === 'chat'
+                  ? 'bg-foreground text-background'
+                  : 'bg-background text-foreground hover:bg-muted'
+              }`}
+            >
+              <MessageCircle className="inline-block h-6 w-6 mr-3" />
               Conversation
-            </TabsTrigger>
-            <TabsTrigger value="preview" disabled={!generatedWorkout} className="flex items-center gap-2">
-              <Target className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setActiveTab('preview')}
+              disabled={!generatedWorkout}
+              className={`px-8 py-6 text-xl font-bold uppercase transition-all ${
+                !generatedWorkout ? 'opacity-50 cursor-not-allowed' : ''
+              } ${
+                activeTab === 'preview'
+                  ? 'bg-foreground text-background'
+                  : 'bg-background text-foreground hover:bg-muted'
+              }`}
+            >
+              <Target className="inline-block h-6 w-6 mr-3" />
               Preview & Schedule
-            </TabsTrigger>
-          </TabsList>
+            </button>
+          </div>
 
-          <TabsContent value="chat" className="space-y-6">
-            <LoadingState isLoading={loadingState.isLoading} message={loadingState.lastOperation} />
-            <ErrorDisplay 
-              error={loadingState.error} 
-              context="Workout Generation"
-              canRetry={loadingState.retryCount < 3}
-              onRetry={() => retry(fetchExercises, 'Loading exercise library')}
-            />
+          <div className={activeTab === 'chat' ? 'block' : 'hidden'}>
+            {loadingState.isLoading && (
+              <div className="mb-6">
+                <LoadingState 
+                  isLoading={loadingState.isLoading}
+                  message={loadingState.lastOperation || 'Loading...'}
+                />
+              </div>
+            )}
+            
+            {loadingState.error && (
+              <div className="mb-6">
+                <ErrorDisplay
+                  error={loadingState.error}
+                  context="Workout Generation"
+                  canRetry={loadingState.retryCount < 3}
+                  onRetry={() => retry(fetchExercises, 'Loading exercise library')}
+                />
+              </div>
+            )}
             
             {showPreferencesForm ? (
               <PreferencesForm />
@@ -395,39 +426,33 @@ const WorkoutGenerator = () => {
             ) : null}
             
             {!showPreferencesForm && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border-dashed border-primary/30">
-                  <CardContent className="pt-6 text-center">
-                    <Target className="h-8 w-8 text-primary mx-auto mb-2" />
-                    <p className="font-medium">AI-Powered Analysis</p>
-                    <p className="text-sm text-muted-foreground">
-                      Uses your fitness data and analytics
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card className="border-dashed border-primary/30">
-                  <CardContent className="pt-6 text-center">
-                    <Clock className="h-8 w-8 text-primary mx-auto mb-2" />
-                    <p className="font-medium">Dynamic Questions</p>
-                    <p className="text-sm text-muted-foreground">
-                      Personalized based on your history
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card className="border-dashed border-primary/30">
-                  <CardContent className="pt-6 text-center">
-                    <Zap className="h-8 w-8 text-primary mx-auto mb-2" />
-                    <p className="font-medium">Smart Recommendations</p>
-                    <p className="text-sm text-muted-foreground">
-                      Leverages advanced AI reasoning
-                    </p>
-                  </CardContent>
-                </Card>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+                <div className="border-3 border-foreground p-8 hover:shadow-[8px_8px_0px_0px_hsl(var(--foreground))] transition-all">
+                  <Target className="h-12 w-12 mb-6" />
+                  <h3 className="text-2xl font-display mb-3">AI-POWERED ANALYSIS</h3>
+                  <p className="text-base font-medium">
+                    Uses your fitness data and analytics
+                  </p>
+                </div>
+                <div className="border-3 border-foreground p-8 hover:shadow-[8px_8px_0px_0px_hsl(var(--foreground))] transition-all">
+                  <Clock className="h-12 w-12 mb-6" />
+                  <h3 className="text-2xl font-display mb-3">DYNAMIC QUESTIONS</h3>
+                  <p className="text-base font-medium">
+                    Personalized based on your history
+                  </p>
+                </div>
+                <div className="border-3 border-foreground p-8 hover:shadow-[8px_8px_0px_0px_hsl(var(--foreground))] transition-all">
+                  <Zap className="h-12 w-12 mb-6" />
+                  <h3 className="text-2xl font-display mb-3">SMART RECOMMENDATIONS</h3>
+                  <p className="text-base font-medium">
+                    Leverages advanced AI reasoning
+                  </p>
+                </div>
               </div>
             )}
-          </TabsContent>
+          </div>
 
-          <TabsContent value="preview" className="space-y-6">
+          <div className={activeTab === 'preview' ? 'block' : 'hidden'}>
             {generatedWorkout && (
               <ModularWorkoutDisplay 
                 workout={generatedWorkout}
@@ -436,7 +461,7 @@ const WorkoutGenerator = () => {
                 exercises={exercises}
               />
             )}
-          </TabsContent>
+          </div>
         </Tabs>
       </div>
     </div>

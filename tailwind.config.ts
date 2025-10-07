@@ -18,6 +18,10 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'sans': ['Space Grotesk', 'system-ui', 'sans-serif'],
+				'display': ['Bebas Neue', 'Space Grotesk', 'system-ui', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -73,6 +77,15 @@ export default {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			borderWidth: {
+				'3': '3px',
+				'4': '4px',
+			},
+			fontSize: {
+				'7xl': '5rem',
+				'8xl': '6rem',
+				'9xl': '8rem',
 			},
 			keyframes: {
 				'accordion-down': {

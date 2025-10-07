@@ -8,42 +8,32 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Light mode using the provided color palette */
-    --background: 0 0% 96%; /* #F5F5F5 */
-    --foreground: 180 25% 25%; /* #2F4F4F */
-
-    --card: 0 0% 96%; /* #F5F5F5 */
-    --card-foreground: 180 25% 25%; /* #2F4F4F */
-
-    --popover: 0 0% 96%; /* #F5F5F5 */
-    --popover-foreground: 180 25% 25%; /* #2F4F4F */
-
-    /* Primary using dark slate */
-    --primary: 180 25% 25%; /* #2F4F4F */
-    --primary-foreground: 0 0% 96%; /* #F5F5F5 */
-
-    /* Secondary using slate gray */
-    --secondary: 210 13% 50%; /* #708090 */
-    --secondary-foreground: 0 0% 96%; /* #F5F5F5 */
-
-    /* Muted using light gray */
-    --muted: 0 0% 83%; /* #D3D3D3 */
-    --muted-foreground: 180 25% 25%; /* #2F4F4F */
-
-    /* Accent using dark gray */
-    --accent: 0 0% 66%; /* #A9A9A9 */
-    --accent-foreground: 180 25% 25%; /* #2F4F4F */
-
-    /* Destructive with slight red tint */
-    --destructive: 0 30% 40%;
-    --destructive-foreground: 0 0% 96%;
-
-    /* Borders and inputs */
-    --border: 0 0% 83%; /* #D3D3D3 */
-    --input: 0 0% 83%; /* #D3D3D3 */
-    --ring: 180 25% 25%; /* #2F4F4F */
-
-    --radius: 0.5rem;
+    /* BUILD WARS Design System - High Contrast */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 95%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 35%;
+    --accent: 142 76% 36%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 0%;
+    --input: 0 0% 0%;
+    --ring: 0 0% 0%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0rem;
 
     /* Sidebar theme */
     --sidebar-background: 0 0% 96%; /* #F5F5F5 */
@@ -64,40 +54,26 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Dark mode using inverted palette */
-    --background: 180 25% 25%; /* #2F4F4F */
-    --foreground: 0 0% 96%; /* #F5F5F5 */
-
-    --card: 180 25% 25%; /* #2F4F4F */
-    --card-foreground: 0 0% 96%; /* #F5F5F5 */
-
-    --popover: 180 25% 25%; /* #2F4F4F */
-    --popover-foreground: 0 0% 96%; /* #F5F5F5 */
-
-    /* Primary using slate gray in dark mode */
-    --primary: 210 13% 50%; /* #708090 */
-    --primary-foreground: 180 25% 25%; /* #2F4F4F */
-
-    /* Secondary using dark gray */
-    --secondary: 0 0% 66%; /* #A9A9A9 */
-    --secondary-foreground: 180 25% 25%; /* #2F4F4F */
-
-    /* Muted using darker slate */
-    --muted: 180 25% 20%;
-    --muted-foreground: 0 0% 83%; /* #D3D3D3 */
-
-    /* Accent using light gray */
-    --accent: 0 0% 83%; /* #D3D3D3 */
-    --accent-foreground: 180 25% 25%; /* #2F4F4F */
-
-    /* Destructive with slight red tint */
-    --destructive: 0 40% 50%;
-    --destructive-foreground: 0 0% 96%;
-
-    /* Dark mode borders and inputs */
-    --border: 210 13% 40%;
-    --input: 180 25% 20%;
-    --ring: 210 13% 50%; /* #708090 */
+    /* BUILD WARS Dark Mode - Inverted High Contrast */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 0%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 142 76% 36%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 100%;
+    --input: 0 0% 100%;
+    --ring: 0 0% 100%;
 
     /* Dark sidebar theme */
     --sidebar-background: 180 25% 20%;
@@ -124,6 +100,24 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display uppercase tracking-tight;
+  }
+
+  .build-wars-border {
+    @apply border-3 border-foreground;
+  }
+
+  .build-wars-button {
+    @apply border-3 border-foreground bg-foreground text-background px-8 py-4 text-lg font-bold uppercase tracking-wider transition-all duration-200 hover:bg-background hover:text-foreground hover:shadow-[8px_8px_0px_0px_hsl(var(--foreground))];
+  }
+
+  .build-wars-input {
+    @apply border-3 border-foreground bg-background px-4 py-3 text-base font-medium focus:outline-none focus:ring-4 focus:ring-accent;
   }
 }
