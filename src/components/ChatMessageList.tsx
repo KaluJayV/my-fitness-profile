@@ -78,15 +78,18 @@ MessageBubble.displayName = "MessageBubble";
 
 export const ChatMessageList = React.memo<ChatMessageListProps>(({ messages, isProcessing = false, hasError = false, errorMessage }) => {
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    // Delay scroll to ensure DOM has updated
+    setTimeout(() => {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }, 100);
   }, [messages, isProcessing]);
 
   return (
-    <div className="flex-1 min-h-0 overflow-hidden">
-      <ScrollArea className="h-full">
-        <div className="p-4 pr-6 space-y-4">
+    <ScrollArea className="h-full w-full" ref={scrollAreaRef}>
+      <div className="p-4 pr-6 space-y-4">
           {messages.map((message, index) => (
             <MessageBubble key={`${message.timestamp.getTime()}-${index}`} message={message} />
           ))}
@@ -132,9 +135,8 @@ export const ChatMessageList = React.memo<ChatMessageListProps>(({ messages, isP
           )}
           
           <div ref={chatEndRef} />
-        </div>
-      </ScrollArea>
-    </div>
+      </div>
+    </ScrollArea>
   );
 });
 
