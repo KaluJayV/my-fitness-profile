@@ -356,7 +356,7 @@ const WorkoutGenerator = () => {
       
       <div className="container mx-auto px-6 py-12 max-w-7xl">
         <div className="mb-16 border-b-4 border-foreground pb-8">
-          <h1 className="text-7xl md:text-8xl font-display mb-6 leading-none">
+          <h1 className="text-6xl md:text-7xl font-display mb-6 leading-none">
             AI WORKOUT<br />COACH
           </h1>
           <p className="text-xl md:text-2xl font-medium max-w-3xl">
