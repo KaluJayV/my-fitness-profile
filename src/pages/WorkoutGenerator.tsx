@@ -365,22 +365,22 @@ const WorkoutGenerator = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-12">
-          <div className="grid grid-cols-2 gap-4 border-3 border-foreground">
+          <div className="grid grid-cols-2 gap-3 border-3 border-foreground">
             <button
               onClick={() => setActiveTab('chat')}
-              className={`px-8 py-6 text-xl font-bold uppercase transition-all border-r-3 border-foreground ${
+              className={`px-6 py-4 text-lg font-bold uppercase transition-all border-r-3 border-foreground ${
                 activeTab === 'chat'
                   ? 'bg-foreground text-background'
                   : 'bg-background text-foreground hover:bg-muted'
               }`}
             >
-              <MessageCircle className="inline-block h-6 w-6 mr-3" />
+              <MessageCircle className="inline-block h-5 w-5 mr-2" />
               Conversation
             </button>
             <button
               onClick={() => setActiveTab('preview')}
               disabled={!generatedWorkout}
-              className={`px-8 py-6 text-xl font-bold uppercase transition-all ${
+              className={`px-6 py-4 text-lg font-bold uppercase transition-all ${
                 !generatedWorkout ? 'opacity-50 cursor-not-allowed' : ''
               } ${
                 activeTab === 'preview'
@@ -388,7 +388,7 @@ const WorkoutGenerator = () => {
                   : 'bg-background text-foreground hover:bg-muted'
               }`}
             >
-              <Target className="inline-block h-6 w-6 mr-3" />
+              <Target className="inline-block h-5 w-5 mr-2" />
               Preview & Schedule
             </button>
           </div>
